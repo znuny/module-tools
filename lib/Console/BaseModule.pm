@@ -16,10 +16,12 @@ use File::Basename;
 use FindBin qw($RealBin);
 use lib dirname($RealBin);
 use lib dirname($RealBin) . "/Kernel/cpan-lib";
+use lib dirname($RealBin) . '/Custom';
 
 # Also use relative path to find this if invoked inside of the OTRS directory.
 use lib ".";
 use lib "./Kernel/cpan-lib";
+use lib "./Custom";
 
 eval {
     require Kernel::Config;

@@ -37,7 +37,7 @@ Configure settings, Database and Apache of a testing otrs instance
 sub Configure {
     my ( $Self, %Param ) = @_;
 
-    $Self->Description('Setup a testing OTRS intance.');
+    $Self->Description('Setup a testing OTRS instance.');
     $Self->AddOption(
         Name        => 'framework-directory',
         Description => "Specify a base framework directory to set it up.",

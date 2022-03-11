@@ -1,7 +1,7 @@
-OTRS Module Tools
+Module Tools
 =======================================
 
-This package contains convenient command line tools for OTRS development.
+This package contains convenient command line tools for Znuny development.
 
 Installation
 ------------
@@ -25,10 +25,10 @@ Developers can use the tools by invoking console command under OTRS user:
     # Get command overview
     sudo -u otrs /path/to/module-tools/bin/otrs.ModuleTools.pl
 
-    # Install test instance of OTRS
+    # Install test instance
     sudo -u otrs /path/to/module-tools/bin/otrs.ModuleTools.pl TestSystem::Instance::Setup --framework-directory /path/to/otrs --fred-directory /path/to/Fred
 
 On some systems it may be required to run instance setup as root user:
 
-    # Install test intance of OTRS as root
+    # Install test instance of OTRS as root
     sudo /path/to/module-tools/bin/otrs.ModuleTools.pl TestSystem::Instance::Setup --allow-root --framework-directory /path/to/otrs --fred-directory /path/to/Fred
