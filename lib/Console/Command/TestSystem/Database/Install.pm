@@ -1,5 +1,5 @@
 # --
-# Copyright (C) 2001-2020 OTRS AG, https://otrs.com/
+# Copyright (C) 2001-2018 OTRS AG, https://otrs.com/
 # --
 # This software comes with ABSOLUTELY NO WARRANTY. For details, see
 # the enclosed file COPYING for license information (GPL). If you
@@ -8,6 +8,7 @@
 
 ## nofilter(TidyAll::Plugin::OTRS::Perl::Require)
 ## nofilter(TidyAll::Plugin::OTRS::Perl::ObjectDependencies)
+## nofilter(TidyAll::Plugin::OTRS::Migrations::OTRS6::TimeObject)
 
 package Console::Command::TestSystem::Database::Install;
 
@@ -28,6 +29,7 @@ eval {
     require Kernel::Config;
     require Kernel::System::Encode;
     require Kernel::System::Log;
+    require Kernel::System::Time;
     require Kernel::System::Main;
     require Kernel::System::DB;
     require Kernel::System::XML;
@@ -85,7 +87,7 @@ sub PreRun {
         die "$FrameworkDirectory is not a directory";
     }
 
-    if ( !-e ( $FrameworkDirectory . '/RELEASE' ) ) {
+    if ( !-e $FrameworkDirectory . '/RELEASE' ) {
         die "$FrameworkDirectory does not seem to be an OTRS framework directory";
     }
 
@@ -117,6 +119,7 @@ sub Run {
         $CommonObject{ConfigObject} = $Kernel::OM->Get('Kernel::Config');
         $CommonObject{EncodeObject} = $Kernel::OM->Get('Kernel::System::Encode');
         $CommonObject{LogObject}    = $Kernel::OM->Get('Kernel::System::Log');
+        $CommonObject{TimeObject}   = $Kernel::OM->Get('Kernel::System::Time');
         $CommonObject{MainObject}   = $Kernel::OM->Get('Kernel::System::Main');
         $CommonObject{DBObject}     = $Kernel::OM->Get('Kernel::System::DB');
         $CommonObject{XMLObject}    = $Kernel::OM->Get('Kernel::System::XML');
@@ -126,23 +129,10 @@ sub Run {
         $CommonObject{EncodeObject} = Kernel::System::Encode->new(%CommonObject);
         $CommonObject{LogObject}
             = Kernel::System::Log->new( %CommonObject, LogPrefix => 'OTRS-TestSystem::Database::Install' );
+        $CommonObject{TimeObject} = Kernel::System::Time->new(%CommonObject);
         $CommonObject{MainObject} = Kernel::System::Main->new(%CommonObject);
         $CommonObject{DBObject}   = Kernel::System::DB->new(%CommonObject);
         $CommonObject{XMLObject}  = Kernel::System::XML->new(%CommonObject);
-    }
-
-    # Get OTRS major version number.
-    my $OTRSReleaseString = `cat $FrameworkDirectory/RELEASE`;
-    my $OTRSMajorVersion  = '';
-    if ( $OTRSReleaseString =~ m{ VERSION \s+ = \s+ (\d+) .* \z }xms ) {
-        $OTRSMajorVersion = $1;
-
-        if ( $CommonObject{DBObject}->{'DB::Type'} eq 'oracle' && $OTRSMajorVersion >= 9 ) {
-            $Self->PrintError(
-                "OTRS 9+ does not support the Oracle database backend anymore.\n"
-            );
-            return $Self->ExitCodeError();
-        }
     }
 
     # Install database.
@@ -150,24 +140,31 @@ sub Run {
 
     # Create database tables and insert initial values.
     my @SQLPost;
-    for my $SchemaFile (qw ( otrs-schema otrs-initial_insert )) {
-
+    for my $SchemaFile (qw ( schema initial_insert )) {
         my $Path = "$FrameworkDirectory/scripts/database/";
 
-        if ( !-f ( $Path . $SchemaFile . '.xml' ) ) {
-            $Self->PrintError( $Path . $SchemaFile . ".xml not found!\n" );
+        my $RealSchemaFile = $SchemaFile;
+        if (
+            !-f $Path . $SchemaFile . '.xml'
+            && -f $Path . 'otrs-' . $SchemaFile . '.xml'
+        ) {
+            $RealSchemaFile = 'otrs-' . $SchemaFile;
+        }
+
+        if ( !-f $Path . $RealSchemaFile . '.xml' ) {
+            $Self->PrintError( $Path . $RealSchemaFile . ".xml not found!\n" );
         }
 
         my $XML = $CommonObject{MainObject}->FileRead(
             Directory => $Path,
-            Filename  => $SchemaFile . '.xml',
+            Filename  => $RealSchemaFile . '.xml',
         );
         my @XMLArray = $CommonObject{XMLObject}->XMLParse(
             String => $XML,
         );
 
         # Remove tables if requested.
-        if ( $Self->GetOption('delete') && $SchemaFile eq 'otrs-schema' ) {
+        if ( $Self->GetOption('delete') && $SchemaFile eq 'schema' ) {
             $Self->Print("<yellow>Attempting to remove existing tables first...</yellow>\n");
 
             my @TablesToDrop;
@@ -179,23 +176,15 @@ sub Run {
                 push @TablesToDrop, $ArrayKey->{Name};
             }
             if (@TablesToDrop) {
-                @TablesToDrop = sort @TablesToDrop;
                 my $TableList = join ', ', @TablesToDrop;
-                my $DBType    = $CommonObject{DBObject}->{'DB::Type'};
+                my $DBType = $CommonObject{DBObject}->{'DB::Type'};
 
                 if ( $DBType eq 'mysql' ) {
 
-                    # Drop every table in a separate statement.
+                    # Drop all tables in same statement.
                     $CommonObject{DBObject}->Do(
-                        SQL => 'SET FOREIGN_KEY_CHECKS = 0;',
-                    );
-
-                    for my $Table (@TablesToDrop) {
-                        $CommonObject{DBObject}->Do( SQL => "DROP TABLE $Table;" );
-                    }
-
-                    $CommonObject{DBObject}->Do(
-                        SQL => 'SET FOREIGN_KEY_CHECKS = 1;',
+                        SQL =>
+                            "SET FOREIGN_KEY_CHECKS = 0; DROP TABLE IF EXISTS $TableList; SET FOREIGN_KEY_CHECKS = 1",
                     );
                 }
                 elsif ( $DBType eq 'postgresql' ) {
@@ -218,7 +207,7 @@ sub Run {
         );
 
         # If we parsed the schema, catch post instructions.
-        if ( $SchemaFile eq 'otrs-schema' ) {
+        if ( $SchemaFile eq 'schema' ) {
             @SQLPost = $CommonObject{DBObject}->SQLProcessorPost();
         }
 
