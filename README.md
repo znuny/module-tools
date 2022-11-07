@@ -11,6 +11,11 @@ To install the required Perl modules, you can use:
     cd /path/to/module-tools
     cpanm --installdeps .
 
+or install them with help of Debian packages:
+
+    sudo apt install libdatetime-perl libgetopt-complete-perl libio-interactive-perl libstring-similarity-perl libxmlrpc-lite-perl
+
+
 Then please copy the default configuration and change it with your data:
 
     cd /path/to/module-tools
