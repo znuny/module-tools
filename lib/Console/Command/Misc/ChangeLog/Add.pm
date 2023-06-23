@@ -1,5 +1,6 @@
 # --
-# Copyright (C) 2001-2020 OTRS AG, https://otrs.com/
+# Copyright (C) 2001-2021 OTRS AG, https://otrs.com/
+# Copyright (C) 2012 Znuny GmbH, https://znuny.com/
 # --
 # This software comes with ABSOLUTELY NO WARRANTY. For details, see
 # the enclosed file COPYING for license information (GPL). If you
@@ -72,13 +73,13 @@ sub Configure {
     my $Name = $Self->Name();
 
     $Self->AdditionalHelp(<<"EOF");
-<green>otrs.ModuleTools.pl $Name --bug 1234 [--pull-request 1001] [--target-path CHANGES.md]</green>
+<green>znuny.ModuleTools.pl $Name --bug 1234 [--pull-request 1001] [--target-path CHANGES.md]</green>
     Add bugzilla entry title to stable version CHANGES.md and commit message template.
 
-<green>otrs.ModuleTools.pl $Name --bug 1234 [--pull-request 1001] [--version 6]</green>
-    --version causes the entry to be added for the specific OTRS version, e.g. OTRS6, even if it is not stable.
+<green>znuny.ModuleTools.pl $Name --bug 1234 [--pull-request 1001] [--version 6]</green>
+    --version causes the entry to be added for the specific Zuny version, e.g. Znuny6, even if it is not stable.
 
-<green>otrs.ModuleTools.pl $Name --message "My commit message."</green>
+<green>znuny.ModuleTools.pl $Name --message "My commit message."</green>
     Add another message to CHANGES.md and commit message template.
 EOF
 
@@ -222,9 +223,9 @@ sub Run {
         close $OutFile;
     }
 
-    my $Success = open my $OutFile, '>', '.git/OTRSCommitTemplate.msg';    ## no critic
+    my $Success = open my $OutFile, '>', '.git/ZnunyCommitTemplate.msg';    ## no critic
     if ( !$Success ) {
-        $Self->PrintError("Couldn't open .git/OTRSCommitTemplate.msg: $!\n");
+        $Self->PrintError("Couldn't open .git/ZnunyCommitTemplate.msg: $!\n");
         return $Self->ExitCodeError();
     }
     binmode $OutFile;

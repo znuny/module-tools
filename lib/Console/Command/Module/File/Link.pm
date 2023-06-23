@@ -1,5 +1,6 @@
 # --
-# Copyright (C) 2001-2020 OTRS AG, https://otrs.com/
+# Copyright (C) 2001-2021 OTRS AG, https://otrs.com/
+# Copyright (C) 2012 Znuny GmbH, https://znuny.com/
 # --
 # This software comes with ABSOLUTELY NO WARRANTY. For details, see
 # the enclosed file COPYING for license information (GPL). If you
@@ -21,7 +22,7 @@ Console::Command::Module::File::Link - Console command to link module files into
 
 =head1 DESCRIPTION
 
-Link OTRS module files into framework root.
+Link Znuny module files into framework root.
 
 =cut
 
@@ -45,7 +46,7 @@ sub Configure {
     my $Name = $Self->Name();
 
     $Self->AdditionalHelp(<<"EOF");
-The <green>otrs.ModuleTools.pl $Name</green> command installs a given OTRS module into the OTRS framework by creating appropriate links.
+The <green>znuny.ModuleTools.pl $Name</green> command installs a given Znuny module into the Znuny framework by creating appropriate links.
 
 Beware that code from the .sopm file is not executed.
 
@@ -86,7 +87,7 @@ sub PreRun {
     }
 
     if ( !-e ( $FrameworkDirectory . '/RELEASE' ) ) {
-        die "$FrameworkDirectory does not seem to be an OTRS framework directory";
+        die "$FrameworkDirectory does not seem to be an Znuny framework directory";
     }
 
     return;

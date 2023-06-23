@@ -1,5 +1,6 @@
 # --
-# Copyright (C) 2001-2020 OTRS AG, https://otrs.com/
+# Copyright (C) 2001-2021 OTRS AG, https://otrs.com/
+# Copyright (C) 2012 Znuny GmbH, https://znuny.com/
 # --
 # This software comes with ABSOLUTELY NO WARRANTY. For details, see
 # the enclosed file COPYING for license information (GPL). If you
@@ -18,11 +19,11 @@ use parent qw(Console::BaseCommand);
 
 =head1 NAME
 
-Console::Command::Misc::File::CheckChanged - Console command to get changed files between different releases of OTRS
+Console::Command::Misc::File::CheckChanged - Console command to get changed files between different releases of Znuny
 
 =head1 DESCRIPTION
 
-Compares two OTRS releases and check its file differences
+Compares two Znuny releases and check its file differences
 
 =head1 PUBLIC INTERFACE
 
@@ -31,16 +32,16 @@ Compares two OTRS releases and check its file differences
 sub Configure {
     my ( $Self, %Param ) = @_;
 
-    $Self->Description('Get changed files between different releases of OTRS.');
+    $Self->Description('Get changed files between different releases of Znuny.');
     $Self->AddArgument(
         Name        => 'source-directory',
-        Description => "Specify the base OTRS framework directory.",
+        Description => "Specify the base Znuny framework directory.",
         Required    => 1,
         ValueRegex  => qr/.*/smx,
     );
     $Self->AddArgument(
         Name        => 'target-directory',
-        Description => "Specify the target OTRS framework directory to compare.",
+        Description => "Specify the target Znuny framework directory to compare.",
         Required    => 1,
         ValueRegex  => qr/.*/smx,
     );
@@ -151,7 +152,7 @@ sub Run {
 Returns a HASHREF with file names as key and its MD5 hex digest as value.
 It strips out the root directory from the file name.
 
-my $FileName2MD5 = FindFilesOfVersion( '/ws/otrs-head' );
+my $FileName2MD5 = FindFilesOfVersion( '/ws/znuny-head' );
 
 results will look like:
 

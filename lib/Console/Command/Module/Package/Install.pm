@@ -1,5 +1,6 @@
 # --
-# Copyright (C) 2001-2020 OTRS AG, https://otrs.com/
+# Copyright (C) 2001-2021 OTRS AG, https://otrs.com/
+# Copyright (C) 2012 Znuny GmbH, https://znuny.com/
 # --
 # This software comes with ABSOLUTELY NO WARRANTY. For details, see
 # the enclosed file COPYING for license information (GPL). If you
@@ -25,7 +26,7 @@ Console::Command::Module::Package::Install - Console command to install a module
 
 =head1 DESCRIPTION
 
-Link a OTRS module into the framework then run database install and run code install.
+Link a Znuny module into the framework then run database install and run code install.
 
 =cut
 
@@ -59,17 +60,17 @@ sub Configure {
 
 <yellow>Installing from relative module directory</yellow>
 
-    <green>otrs.ModuleTools.pl $Name ../MyModule ./</green>
-    <green>otrs.ModuleTools.pl $Name MyModule OTRS-5_0</green>
+    <green>znuny.ModuleTools.pl $Name ../MyModule ./</green>
+    <green>znuny.ModuleTools.pl $Name MyModule Znuny-7_0</green>
 
 <yellow>Installing from absolute module directory</yellow>
 
-    <green>otrs.ModuleTools.pl $Name /Users/MyUser/ws/MyModule</green>
-    <green>otrs.ModuleTools.pl $Name /Users/MyUser/ws/MyModule /Users/MyUser/ws/OTRS-5_0</green>
+    <green>znuny.ModuleTools.pl $Name /Users/MyUser/ws/MyModule</green>
+    <green>znuny.ModuleTools.pl $Name /Users/MyUser/ws/MyModule /Users/MyUser/ws/Znuny-7_0</green>
 
 <yellow>Installing from module collection</yellow>
 
-    <green>otrs.ModuleTools.pl $Name ModuleCollection</green>
+    <green>znuny.ModuleTools.pl $Name ModuleCollection</green>
 EOF
 
     return;
@@ -109,7 +110,7 @@ sub PreRun {
     }
 
     if ( !-e ( $FrameworkDirectory . '/RELEASE' ) ) {
-        die "$FrameworkDirectory does not seem to be an OTRS framework directory";
+        die "$FrameworkDirectory does not seem to be an Znuny framework directory";
     }
 
     return;
@@ -131,27 +132,36 @@ sub Run {
 
     my $FrameworkDirectory = File::Spec->rel2abs( $Self->GetArgument('framework-directory') || '.' );
 
-    # Get OTRS major version number.
-    my $OTRSReleaseString = `cat $FrameworkDirectory/RELEASE`;
-    my $OTRSMajorVersion  = '';
-    if ( $OTRSReleaseString =~ m{ VERSION \s+ = \s+ (\d+) .* \z }xms ) {
-        $OTRSMajorVersion = $1;
+    # Get Znuny major version number.
+    my $ReleaseString = `cat $FrameworkDirectory/RELEASE`;
+    my $MajorVersion  = '';
+    if ( $ReleaseString =~ m{ VERSION \s+ = \s+ (\d+) .* \z }xms ) {
+        $MajorVersion = $1;
     }
 
     my %Config = %{ $Self->{Config}->{TestSystem} || {} };
 
+    if ( $MajorVersion >= 7 ) {
+        $Config{ProductName}   = 'Znuny';
+        $Config{ProductNameLC} = 'znuny';
+    }
+    else {
+        $Config{ProductName}   = 'OTRS';
+        $Config{ProductNameLC} = 'otrs';
+    }
+
     # Define some maintenance commands.
-    if ( $OTRSMajorVersion >= 5 ) {
+    if ( $MajorVersion >= 5 ) {
         $Config{RebuildConfigCommand}
-            = "sudo -u $Config{PermissionsOTRSUser} $FrameworkDirectory/bin/otrs.Console.pl Maint::Config::Rebuild";
+            = "sudo -u $Config{PermissionsUser} $FrameworkDirectory/bin/$Config{ProductNameLC}.Console.pl Maint::Config::Rebuild";
         $Config{DeleteCacheCommand}
-            = "sudo -u $Config{PermissionsOTRSUser} $FrameworkDirectory/bin/otrs.Console.pl Maint::Cache::Delete";
+            = "sudo -u $Config{PermissionsUser} $FrameworkDirectory/bin/$Config{ProductNameLC}.Console.pl Maint::Cache::Delete";
     }
     else {
         $Config{RebuildConfigCommand}
-            = "sudo -u $Config{PermissionsOTRSUser} perl $FrameworkDirectory/bin/otrs.RebuildConfig.pl";
+            = "sudo -u $Config{PermissionsUser} perl $FrameworkDirectory/bin/$Config{ProductNameLC}.RebuildConfig.pl";
         $Config{DeleteCacheCommand}
-            = "sudo -u $Config{PermissionsOTRSUser} perl $FrameworkDirectory/bin/otrs.DeleteCache.pl";
+            = "sudo -u $Config{PermissionsUser} perl $FrameworkDirectory/bin/$Config{ProductNameLC}.DeleteCache.pl";
     }
 
     my $GlobalFail;

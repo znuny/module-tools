@@ -1,5 +1,6 @@
 # --
-# Copyright (C) 2001-2020 OTRS AG, https://otrs.com/
+# Copyright (C) 2001-2021 OTRS AG, https://otrs.com/
+# Copyright (C) 2012 Znuny GmbH, https://znuny.com/
 # --
 # This software comes with ABSOLUTELY NO WARRANTY. For details, see
 # the enclosed file COPYING for license information (GPL). If you
@@ -26,18 +27,18 @@ use parent qw(Console::BaseCommand);
 
 =head1 NAME
 
-Console::Command::TestSystem::Instance::Setup - Console command to setup and configure an OTRS test instance
+Console::Command::TestSystem::Instance::Setup - Console command to setup and configure an Znuny test instance
 
 =head1 DESCRIPTION
 
-Configure settings, Database and Apache of a testing otrs instance
+Configure settings, Database and Apache of a testing Znuny instance
 
 =cut
 
 sub Configure {
     my ( $Self, %Param ) = @_;
 
-    $Self->Description('Setup a testing OTRS instance.');
+    $Self->Description('Setup a testing Znuny instance.');
     $Self->AddOption(
         Name        => 'framework-directory',
         Description => "Specify a base framework directory to set it up.",
@@ -52,6 +53,13 @@ sub Configure {
         HasValue    => 1,
         ValueRegex  => qr{^(mysql|postgresql|oracle)$}ismx,
     );
+    $Self->AddOption(
+        Name        => 'fred-directory',
+        Description => "Specify directory of the Znuny module Fred.",
+        Required    => 0,
+        HasValue    => 1,
+        ValueRegex  => qr/.*/smx,
+    );
 
     return;
 }
@@ -63,6 +71,15 @@ sub PreRun {
 
     my @Directories = ($FrameworkDirectory);
 
+    my $FredDirectory = $Self->GetOption('fred-directory');
+    if ($FredDirectory) {
+        $FredDirectory = File::Spec->rel2abs($FredDirectory);
+    }
+
+    if ($FredDirectory) {
+        push @Directories, $FredDirectory;
+    }
+
     for my $Directory (@Directories) {
         if ( !-e $Directory ) {
             die "$Directory does not exist";
@@ -73,7 +90,13 @@ sub PreRun {
     }
 
     if ( !-e ( $FrameworkDirectory . '/RELEASE' ) ) {
-        die "$FrameworkDirectory does not seem to be an OTRS framework directory";
+        die "$FrameworkDirectory does not seem to be an Znuny framework directory";
+    }
+
+    if ($FredDirectory) {
+        if ( !-e $FredDirectory . '/Fred.sopm' ) {
+            die "$FrameworkDirectory does not seem to be a Fred module directory";
+        }
     }
 
     return;
@@ -85,39 +108,49 @@ sub Run {
     my $FrameworkDirectory = File::Spec->rel2abs( $Self->GetOption('framework-directory') );
     my $DatabaseType       = ucfirst( $Self->GetOption('database-type') || 'Mysql' );
 
+    my $FredDirectory = $Self->GetOption('fred-directory');
+    if ($FredDirectory) {
+        $FredDirectory = File::Spec->rel2abs($FredDirectory);
+    }
+
     # Remove possible slash at the end.
     $FrameworkDirectory =~ s{ / \z }{}xms;
 
-    # Get OTRS major version number.
-    my $OTRSReleaseString = `cat $FrameworkDirectory/RELEASE`;
-    my $OTRSMajorVersion  = '';
-    if ( $OTRSReleaseString =~ m{ VERSION \s+ = \s+ (\d+) .* \z }xms ) {
-        $OTRSMajorVersion = $1;
+    # Get Znuny major version number.
+    my $ReleaseString = `cat $FrameworkDirectory/RELEASE`;
+    my $MajorVersion  = '';
+    if ( $ReleaseString =~ m{ VERSION \s+ = \s+ (\d+) .* \z }xms ) {
+        $MajorVersion = $1;
 
-        if ( $DatabaseType eq 'Oracle' && $OTRSMajorVersion >= 9 ) {
-            $Self->PrintError(
-                "OTRS 9+ does not support the Oracle database backend anymore.\n"
-            );
-            return $Self->ExitCodeError();
-        }
-
-        $Self->Print("\n<yellow>Installing testsystem for OTRS version $OTRSMajorVersion.</yellow>\n\n");
+        $Self->Print("\n<yellow>Installing testsystem for Znuny version $MajorVersion.</yellow>\n\n");
     }
 
     my %Config = %{ $Self->{Config}->{TestSystem} || {} };
 
+    $Config{PermissionsUser}  //= $Config{PermissionsOTRSUser};
+    $Config{PermissionsGroup} //= $Config{PermissionsOTRSGroup};
+
+    if ( $MajorVersion >= 7 ) {
+        $Config{ProductName}   = 'Znuny';
+        $Config{ProductNameLC} = 'znuny';
+    }
+    else {
+        $Config{ProductName}   = 'OTRS';
+        $Config{ProductNameLC} = 'otrs';
+    }
+
     # Define some maintenance commands.
-    if ( $OTRSMajorVersion >= 5 ) {
+    if ( $MajorVersion >= 5 ) {
         $Config{RebuildConfigCommand}
-            = "sudo -u $Config{PermissionsOTRSUser} $FrameworkDirectory/bin/otrs.Console.pl Maint::Config::Rebuild";
+            = "sudo -u $Config{PermissionsUser} $FrameworkDirectory/bin/$Config{ProductNameLC}.Console.pl Maint::Config::Rebuild";
         $Config{DeleteCacheCommand}
-            = "sudo -u $Config{PermissionsOTRSUser} $FrameworkDirectory/bin/otrs.Console.pl Maint::Cache::Delete";
+            = "sudo -u $Config{PermissionsUser} $FrameworkDirectory/bin/$Config{ProductNameLC}.Console.pl Maint::Cache::Delete";
     }
     else {
         $Config{RebuildConfigCommand}
-            = "sudo -u $Config{PermissionsOTRSUser} perl $FrameworkDirectory/bin/otrs.RebuildConfig.pl";
+            = "sudo -u $Config{PermissionsUser} perl $FrameworkDirectory/bin/$Config{ProductNameLC}.RebuildConfig.pl";
         $Config{DeleteCacheCommand}
-            = "sudo -u $Config{PermissionsOTRSUser} perl $FrameworkDirectory/bin/otrs.DeleteCache.pl";
+            = "sudo -u $Config{PermissionsUser} perl $FrameworkDirectory/bin/$Config{ProductNameLC}.DeleteCache.pl";
     }
 
     my $SystemName = $FrameworkDirectory;
@@ -133,14 +166,11 @@ sub Run {
     # Copy WebApp.conf file.
     my $WebAppConfFile     = $FrameworkDirectory . '/Kernel/WebApp.conf';
     my $WebAppConfDistFile = $FrameworkDirectory . '/Kernel/WebApp.conf.dist';
-    if ( $OTRSMajorVersion >= 7 ) {
+    if ( -e $WebAppConfDistFile ) {
 
         $Self->Print("\n  <yellow>Copying WebApp.conf...</yellow>\n");
 
         my $WebAppConfStr = $Self->ReadFile($WebAppConfDistFile);
-
-        # Use fewer worker processed to save memory.
-        $WebAppConfStr =~ s{workers \s+ => \s+ \d+\,}{workers => 5,}xmsg;
 
         my $Success = $Self->WriteFile( $WebAppConfFile, $WebAppConfStr );
         if ( !$Success ) {
@@ -157,8 +187,8 @@ sub Run {
         }
 
         my $ConfigStr = $Self->ReadFile( $FrameworkDirectory . '/Kernel/Config.pm.dist' );
-        $ConfigStr =~ s{/opt/otrs}{$FrameworkDirectory}xmsg;
-        $ConfigStr =~ s{('otrs'|'some-pass')}{'$DatabaseSystemName'}xmsg;
+        $ConfigStr =~ s{/opt/$Config{ProductNameLC}}{$FrameworkDirectory}xmsg;
+        $ConfigStr =~ s{('$Config{ProductNameLC}'|'some-pass')}{'$DatabaseSystemName'}xmsg;
 
         if ( $DatabaseType eq 'Postgresql' ) {
             $ConfigStr
@@ -187,13 +217,19 @@ sub Run {
         \$Self->{'CheckMXRecord'}       = 0;
         \$Self->{'Organization'}        = '';
         \$Self->{'LogModule'}           = 'Kernel::System::Log::File';
-        \$Self->{'LogModule::LogFile'}  = '$Config{EnvironmentRoot}$SystemName/var/log/otrs.log';
+        \$Self->{'LogModule::LogFile'}  = '$Config{EnvironmentRoot}$SystemName/var/log/$Config{ProductNameLC}.log';
         \$Self->{'FQDN'}                = 'localhost';
         \$Self->{'DefaultLanguage'}     = 'de';
         \$Self->{'DefaultCharset'}      = 'utf-8';
         \$Self->{'AdminEmail'}          = 'root\@localhost';
         \$Self->{'Package::Timeout'}    = '120';
         \$Self->{'SendmailModule'}      =  'Kernel::System::Email::DoNotSendEmail';
+
+        # Fred
+        \$Self->{'Fred::BackgroundColor'} = '#006ea5';
+        \$Self->{'Fred::SystemName'}      = '$SystemName';
+        \$Self->{'Fred::ConsoleOpacity'}  = '0.7';
+        \$Self->{'Fred::ConsoleWidth'}    = '30%';
 
         # Misc
         \$Self->{'Loader::Enabled::CSS'}  = 0;
@@ -224,17 +260,14 @@ EOD
             print "    Overriding default configuration...\n    Done.\n";
         }
 
-        # Insert config overrides in the designated area of the file.
-        #   Special handling for OTRS 7+ style configuration file which has been cleaned up.
-        if ( $OTRSMajorVersion >= 7 ) {
-            $ConfigStr =~ s{( \s+ return [ ] 1; \s \} )}{$ConfigInjectStr$1}xms;
+        $ConfigStr =~ s{\# \s* \$Self->\{CheckMXRecord\} \s* = \s* 0;}{$ConfigInjectStr}xms;
 
-            # Comment out ScriptAlias and Frontend::WebPath so the default can be used.
-            $ConfigStr =~ s{(\$Self->\{'ScriptAlias'\} \s+ = \s+ ') [^']+ (';)}{# $1${SystemName}/otrs/$2}xms;
+        # Comment out ScriptAlias and Frontend::WebPath so the default can be used.
+        if ( -e $WebAppConfDistFile ) {
+
+            $ConfigStr
+                =~ s{(\$Self->\{'ScriptAlias'\} \s+ = \s+ ') [^']+ (';)}{# $1${SystemName}/$Config{ProductNameLC}/$2}xms;
             $ConfigStr =~ s{(\$Self->\{'Frontend::WebPath'\} \s+ = \s+ ') [^']+ (';)}{# $1/${SystemName}/htdocs/$2}xms;
-        }
-        else {
-            $ConfigStr =~ s{\# \s* \$Self->\{CheckMXRecord\} \s* = \s* 0;}{$ConfigInjectStr}xms;
         }
 
         my $Success = $Self->WriteFile( $FrameworkDirectory . '/Kernel/Config.pm', $ConfigStr );
@@ -244,24 +277,28 @@ EOD
         }
     }
 
-    # Only for OTRS < 7
-    if ( $OTRSMajorVersion < 7 ) {
+    # Check apache config.
+    if ( !-e ( $FrameworkDirectory . '/scripts/apache2-httpd.include.conf' ) ) {
+        $Self->PrintError("/scripts/apache2-httpd.include.conf cannot be opened\n");
+        return $Self->ExitCodeError();
+    }
 
-        # Check apache config.
-        if ( !-e ( $FrameworkDirectory . '/scripts/apache2-httpd.include.conf' ) ) {
-            $Self->PrintError("/scripts/apache2-httpd.include.conf cannot be opened\n");
-            return $Self->ExitCodeError();
-        }
+    # Copy apache config file.
+    my $ApacheConfigFile = "$Config{ApacheCFGDir}$SystemName.conf";
+    $Self->System(
+        "sudo cp -p $FrameworkDirectory/scripts/apache2-httpd.include.conf $ApacheConfigFile"
+    );
 
-        # Copy apache config file.
-        my $ApacheConfigFile = "$Config{ApacheCFGDir}$SystemName.conf";
+    # Copy apache mod perl file.
+    my $ApacheModPerlFile = "$Config{ApacheCFGDir}$SystemName.apache2-perl-startup.pl";
+    if ( -e "$FrameworkDirectory/scripts/apache2-perl-startup.pl" ) {
         $Self->System(
             "sudo cp -p $FrameworkDirectory/scripts/apache2-httpd.include.conf $ApacheConfigFile"
         );
 
         # Copy apache mod perl file.
         my $ApacheModPerlFile = "$Config{ApacheCFGDir}$SystemName.apache2-perl-startup.pl";
-        if ( -e "$FrameworkDirectory/scripts/apache2-perl-startup.pl" ) {
+        if ( -e $ApacheModPerlFile ) {
             $Self->System(
                 "sudo cp -p $FrameworkDirectory/scripts/apache2-perl-startup.pl $ApacheModPerlFile"
             );
@@ -271,12 +308,14 @@ EOD
         {
             my $ApacheConfigStr = $Self->ReadFile($ApacheConfigFile);
             $ApacheConfigStr
-                =~ s{Perlrequire \s+ /opt/otrs/scripts/apache2-perl-startup\.pl}{Perlrequire $ApacheModPerlFile}xms;
-            $ApacheConfigStr =~ s{/opt/otrs}{$FrameworkDirectory}xmsg;
-            $ApacheConfigStr =~ s{/otrs/}{/$SystemName/}xmsg;
-            $ApacheConfigStr =~ s{/otrs-web/}{/$SystemName-web/}xmsg;
+                =~ s{Perlrequire \s+ /opt/$Config{ProductNameLC}/scripts/apache2-perl-startup\.pl}{Perlrequire $ApacheModPerlFile}xms;
+            $ApacheConfigStr =~ s{/opt/$Config{ProductNameLC}}{$FrameworkDirectory}xmsg;
+            $ApacheConfigStr =~ s{ /$Config{ProductNameLC}/}{ /$SystemName/}msg;
+            $ApacheConfigStr
+                =~ s{$Config{EnvironmentRoot}/$Config{ProductNameLC}/}{$Config{EnvironmentRoot}/$SystemName/}xmsg;
+            $ApacheConfigStr =~ s{/$Config{ProductNameLC}-web/}{/$SystemName-web/}xmsg;
             $ApacheConfigStr =~ s{<IfModule \s* mod_perl.c>}{<IfModule mod_perlOFF.c>}xmsg;
-            $ApacheConfigStr =~ s{<Location \s+ /otrs>}{<Location /$SystemName>}xms;
+            $ApacheConfigStr =~ s{<Location \s+ /$Config{ProductNameLC}>}{<Location /$SystemName>}xms;
 
             my $Success = $Self->WriteFile( $ApacheConfigFile, $ApacheConfigStr );
             if ( !$Success ) {
@@ -291,7 +330,7 @@ EOD
             my $ApacheModPerlConfigStr = $Self->ReadFile($ApacheModPerlFile);
 
             # Set correct path.
-            $ApacheModPerlConfigStr =~ s{/opt/otrs}{$FrameworkDirectory}xmsg;
+            $ApacheModPerlConfigStr =~ s{/opt/$Config{ProductNameLC}}{$FrameworkDirectory}xmsg;
 
             # Enable lines for MySQL.
             if ( $DatabaseType eq 'Mysql' ) {
@@ -335,7 +374,7 @@ EOD
     }
     elsif ( $DatabaseType eq 'Oracle' ) {
         $DSN = 'DBI:Oracle://127.0.0.1:1521/XE';
-        ## nofilter(TidyAll::Plugin::OTRS::Perl::Require)
+        ## nofilter(TidyAll::Plugin::Znuny::Perl::Require)
         require DBD::Oracle;    ## no critic
         push @DBIParam, {
             ora_session_mode => $DBD::Oracle::ORA_SYSDBA,    ## no critic
@@ -357,7 +396,7 @@ EOD
             $DBH->do("DROP DATABASE IF EXISTS $DatabaseSystemName");
 
             my $Charset = 'utf8mb4';
-            if ( $OTRSMajorVersion < 8 ) {
+            if ( $MajorVersion < 8 ) {
                 $Charset = 'utf8';
             }
 
@@ -422,12 +461,21 @@ EOD
     );
 
     # Make sure we've got the correct rights set (e.g. in case you've downloaded the files as root).
-    $Self->System("sudo chown -R $Config{PermissionsOTRSUser}:$Config{PermissionsOTRSGroup} $FrameworkDirectory");
+    $Self->System("sudo chown -R $Config{PermissionsUser}:$Config{PermissionsGroup} $FrameworkDirectory");
+
+    # Link fred module.
+    if ($FredDirectory) {
+        $Self->Print("\n  <yellow>Linking Fred module into $SystemName...</yellow>\n");
+        $Self->ExecuteCommand(
+            Module => 'Console::Command::Module::File::Link',
+            Params => [ $FredDirectory, $FrameworkDirectory ],
+        );
+    }
 
     # Setting permissions.
     $Self->Print("\n  <yellow>Setting permissions...</yellow>\n");
     $Self->_SetPermissions(
-        OTRSMajorVersion   => $OTRSMajorVersion,
+        MajorVersion       => $MajorVersion,
         FrameworkDirectory => $FrameworkDirectory,
         Config             => \%Config,
     );
@@ -450,24 +498,24 @@ EOD
     # Setting permissions.
     $Self->Print("\n  <yellow>Setting permissions again (just to be sure)...</yellow>\n");
     $Self->_SetPermissions(
-        OTRSMajorVersion   => $OTRSMajorVersion,
+        MajorVersion       => $MajorVersion,
         FrameworkDirectory => $FrameworkDirectory,
         Config             => \%Config,
     );
 
-    if ( $OTRSMajorVersion >= 7 ) {
-        $Self->Print("\n  <yellow>Installing npm dependencies...</yellow>\n");
-        $Self->System(
-            "cd $FrameworkDirectory && npm install --no-save"
-        );
+    if ( $MajorVersion >= 7 ) {
+#         $Self->Print("\n  <yellow>Installing npm dependencies...</yellow>\n");
+#         $Self->System(
+#             "cd $FrameworkDirectory && npm install --no-save"
+#         );
         $Self->Print(
-            "\n  <yellow>Start the development webserver with bin/otrs.Console.pl Dev::Tools::WebServer</yellow>\n"
+            "\n  <yellow>Start the development webserver with bin/$Config{ProductNameLC}.Console.pl Dev::Tools::WebServer</yellow>\n"
         );
         $Self->Print(
             "\n  <yellow>You can access the external interface with http://localhost:3001/external</yellow>\n"
         );
         $Self->Print(
-            "\n  <yellow>You can access the agent interface with http://localhost:3000/otrs/index.pl</yellow>\n"
+            "\n  <yellow>You can access the agent interface with http://localhost:3000/$Config{ProductNameLC}/index.pl</yellow>\n"
         );
     }
 
@@ -550,19 +598,19 @@ sub ExecuteCommand {
 sub _SetPermissions {
     my ( $Self, %Param ) = @_;
 
-    if ( $Param{OTRSMajorVersion} >= 7 ) {
+    if ( $Param{MajorVersion} >= 7 ) {
         $Self->System(
-            "sudo perl $Param{FrameworkDirectory}/bin/otrs.SetPermissions.pl --otrs-user=$Param{Config}->{PermissionsOTRSUser} --admin-group=$Param{Config}->{PermissionsAdminGroup} $Param{FrameworkDirectory}"
+            "sudo perl $Param{FrameworkDirectory}/bin/$Param{Config}->{ProductNameLC}.SetPermissions.pl --znuny-user=$Param{Config}->{PermissionsUser} --web-group=$Param{Config}->{PermissionsWebGroup} --admin-group=$Param{Config}->{PermissionsAdminGroup} $Param{FrameworkDirectory}"
         );
     }
-    elsif ( $Param{OTRSMajorVersion} >= 5 ) {
+    elsif ( $Param{MajorVersion} >= 5 ) {
         $Self->System(
-            "sudo perl $Param{FrameworkDirectory}/bin/otrs.SetPermissions.pl --otrs-user=$Param{Config}->{PermissionsOTRSUser} --web-group=$Param{Config}->{PermissionsWebGroup} --admin-group=$Param{Config}->{PermissionsAdminGroup} $Param{FrameworkDirectory}"
+            "sudo perl $Param{FrameworkDirectory}/bin/$Param{Config}->{ProductNameLC}.SetPermissions.pl --otrs-user=$Param{Config}->{PermissionsUser} --web-group=$Param{Config}->{PermissionsWebGroup} --admin-group=$Param{Config}->{PermissionsAdminGroup} $Param{FrameworkDirectory}"
         );
     }
     else {
         $Self->System(
-            "sudo perl $Param{FrameworkDirectory}/bin/otrs.SetPermissions.pl --otrs-user=$Param{Config}->{PermissionsOTRSUser} --web-user=$Param{Config}->{PermissionsWebUser} --otrs-group=$Param{Config}->{PermissionsOTRSGroup} --web-group=$Param{Config}->{PermissionsWebGroup} --not-root $Param{FrameworkDirectory}"
+            "sudo perl $Param{FrameworkDirectory}/bin/$Param{Config}->{ProductNameLC}.SetPermissions.pl --otrs-user=$Param{Config}->{PermissionsUser} --web-user=$Param{Config}->{PermissionsWebUser} --otrs-group=$Param{Config}->{PermissionsGroup} --web-group=$Param{Config}->{PermissionsWebGroup} --not-root $Param{FrameworkDirectory}"
         );
     }
 

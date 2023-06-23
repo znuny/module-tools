@@ -1,5 +1,6 @@
 # --
-# Copyright (C) 2001-2020 OTRS AG, https://otrs.com/
+# Copyright (C) 2001-2021 OTRS AG, https://otrs.com/
+# Copyright (C) 2012 Znuny GmbH, https://znuny.com/
 # --
 # This software comes with ABSOLUTELY NO WARRANTY. For details, see
 # the enclosed file COPYING for license information (GPL). If you
@@ -21,7 +22,7 @@ Console::Command::Module::File::Unlink - Console command to unlink module files 
 
 =head1 DESCRIPTION
 
-Link OTRS module files into framework root.
+Link Znuny module files into framework root.
 
 =cut
 
@@ -87,7 +88,7 @@ sub PreRun {
     }
 
     if ( !-e ( $FrameworkDirectory . '/RELEASE' ) ) {
-        die "$FrameworkDirectory does not seem to be an OTRS framework directory";
+        die "$FrameworkDirectory does not seem to be an Znuny framework directory";
     }
 
     return;
@@ -230,6 +231,14 @@ sub _UnlinkFiles {
         next FILE if $File =~ m{^README.markdown$};
         next FILE if $File =~ m{^README.md$};
         next FILE if $File =~ m{^LICENSE$};
+        next FILE if $File =~ m{bin/otrs.CheckModules.pl$};
+        next FILE if $File =~ m{bin/otrs.CheckSum.pl$};
+        next FILE if $File =~ m{bin/otrs.Console.pl$};
+        next FILE if $File =~ m{bin/otrs.Daemon.pl$};
+        next FILE if $File =~ m{bin/otrs.SetPermissions.pl$};
+        next FILE if $File =~ m{development/webservices/otrs.RESTRequest.pl$};
+        next FILE if $File =~ m{development/webservices/otrs.SOAPRequest.pl$};
+        next FILE if $File =~ m{scripts/contrib/otrs.SyncLDAP2DB.pl$};
 
         # Recurse into subdirectories.
         if ( -d $File ) {

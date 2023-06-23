@@ -1,14 +1,14 @@
 # --
-# Copyright (C) 2001-2020 OTRS AG, https://otrs.com/
+# Copyright (C) 2001-2021 OTRS AG, https://otrs.com/
+# Copyright (C) 2012 Znuny GmbH, https://znuny.com/
 # --
 # This software comes with ABSOLUTELY NO WARRANTY. For details, see
 # the enclosed file COPYING for license information (GPL). If you
 # did not receive this file, see https://www.gnu.org/licenses/gpl-3.0.txt.
 # --
 
-## nofilter(TidyAll::Plugin::OTRS::Perl::Require)
-## nofilter(TidyAll::Plugin::OTRS::Perl::ObjectDependencies)
-## nofilter(TidyAll::Plugin::OTRS::Migrations::OTRS6::SysConfig)
+## nofilter(TidyAll::Plugin::Znuny::Perl::Require)
+## nofilter(TidyAll::Plugin::Znuny::Perl::ObjectDependencies)
 
 package Console::Command::TestSystem::Database::Fill;
 
@@ -20,7 +20,7 @@ use FindBin qw($RealBin);
 use lib dirname($RealBin);
 use lib dirname($RealBin) . "/Kernel/cpan-lib";
 
-# Also use relative path to find this if invoked inside of the OTRS directory.
+# Also use relative path to find this if invoked inside of the Znuny directory.
 use lib ".";
 use lib "./Kernel/cpan-lib";
 use lib dirname($RealBin) . '/Custom';
@@ -46,19 +46,19 @@ use parent qw(Console::BaseCommand);
 
 =head1 NAME
 
-Console::Command::TestSystem::Database::Fill - Console command to populate an OTRS database
+Console::Command::TestSystem::Database::Fill - Console command to populate an Znuny database
 
 =head1 SYNOPSIS
 
-Adds users, customers, services and slas to an OTRS database
+Adds users, customers, services and slas to an Znuny database
 
 =cut
 
-## nofilter(TidyAll::Plugin::OTRS::Perl::ObjectManagerCreation)
+## nofilter(TidyAll::Plugin::Znuny::Perl::ObjectManagerCreation)
 sub Configure {
     my ( $Self, %Param ) = @_;
 
-    $Self->Description('Populate an OTRS database with sample data.');
+    $Self->Description('Populate an Znuny database with sample data.');
     $Self->AddOption(
         Name        => 'framework-directory',
         Description => "Specify a base framework directory.",
@@ -88,7 +88,7 @@ sub PreRun {
     }
 
     if ( !-e ( $FrameworkDirectory . '/RELEASE' ) ) {
-        die "$FrameworkDirectory does not seem to be an OTRS framework directory";
+        die "$FrameworkDirectory does not seem to be an Znuny framework directory";
     }
 
     return;
@@ -108,7 +108,7 @@ sub Run {
         # Create object manager.
         $Kernel::OM = Kernel::System::ObjectManager->new(
             'Kernel::System::Log' => {
-                LogPrefix => 'OTRS-TestSystem::Database::Fill',
+                LogPrefix => 'Znuny-TestSystem::Database::Fill',
             },
         );
     }
@@ -133,7 +133,7 @@ sub Run {
         $CommonObject{ConfigObject} = Kernel::Config->new();
         $CommonObject{EncodeObject} = Kernel::System::Encode->new(%CommonObject);
         $CommonObject{LogObject}
-            = Kernel::System::Log->new( %CommonObject, LogPrefix => 'OTRS-TestSystem::Database::Fill' );
+            = Kernel::System::Log->new( %CommonObject, LogPrefix => 'Znuny-TestSystem::Database::Fill' );
         $CommonObject{MainObject}            = Kernel::System::Main->new(%CommonObject);
         $CommonObject{DBObject}              = Kernel::System::DB->new(%CommonObject);
         $CommonObject{SysConfigObject}       = Kernel::System::SysConfig->new(%CommonObject);
@@ -299,7 +299,7 @@ sub Run {
         }
     }
 
-    # Deploy system configuration (>= OTRS6).
+    # Deploy system configuration (>= Znuny 6).
     elsif ( $CommonObject{SysConfigObject}->can('ConfigurationDeploy') ) {
 
         $CommonObject{SysConfigObject}->ConfigurationDeploy(
@@ -327,7 +327,7 @@ sub Run {
         );
     }
 
-    # Enable service (>= OTRS 6).
+    # Enable service (>= Znuny 6).
     elsif ( $CommonObject{SysConfigObject}->can('ConfigItemUpdate') ) {
         $CommonObject{SysConfigObject}->ConfigItemUpdate(
             Valid => 1,

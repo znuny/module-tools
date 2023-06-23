@@ -1,6 +1,7 @@
 #!/usr/bin/perl
 # --
-# Copyright (C) 2001-2020 OTRS AG, https://otrs.com/
+# Copyright (C) 2001-2021 OTRS AG, https://otrs.com/
+# Copyright (C) 2012 Znuny GmbH, https://znuny.com/
 # --
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU AFFERO General Public License as published by
@@ -22,7 +23,7 @@ use strict;
 use warnings;
 use utf8;
 
-## nofilter(TidyAll::Plugin::OTRS::Legal::LicenseValidator)
+## nofilter(TidyAll::Plugin::Znuny::Legal::LicenseValidator)
 
 my $Config = {
 
@@ -32,7 +33,7 @@ my $Config = {
         # the path to your workspace directory, w/ leading and trailing slashes
         EnvironmentRoot => '/ws/',
 
-        # User name for mysql (should be the same that you usually use to install a local OTRS).
+        # User name for mysql (should be the same that you usually use to install a local Znuny).
         DatabaseUserNameMysql => 'root',
 
         # Password for your mysql user.
@@ -50,10 +51,12 @@ my $Config = {
         # Password for your Oracle user.
         DatabasePasswordOracle => '',
 
-        PermissionsOTRSUser   => '_www',    # OTRS user
-        PermissionsOTRSGroup  => '_www',    # OTRS group
-        PermissionsWebUser    => '_www',    # otrs-web user
-        PermissionsWebGroup   => '_www',    # otrs-web group
+        PermissionsUser       => '_www',    # Znuny user
+        PermissionsOTRSUser   => '_www',    # Znuny user        deprecated
+        PermissionsGroup      => '_www',    # Znuny group
+        PermissionsOTRSGroup  => '_www',    # Znuny group       deprecated
+        PermissionsWebUser    => '_www',    # znuny-web user
+        PermissionsWebGroup   => '_www',    # znuny-web group
         PermissionsAdminGroup => ( $^O =~ /darwin/i ? 'wheel' : 'root' ),
 
         # the apache config of the system you're going to install will be copied to this location
@@ -78,7 +81,7 @@ my $Config = {
 #     \$Self->{'CheckMXRecord'}                     = 0;
 #     \$Self->{'Organization'}                      = '';
 #     \$Self->{'LogModule'}                         = 'Kernel::System::Log::File';
-#     \$Self->{'LogModule::LogFile'}                = '$Config{EnvironmentRoot}$SystemName/var/log/otrs.log';
+#     \$Self->{'LogModule::LogFile'}                = '$Config{EnvironmentRoot}$SystemName/var/log/znuny.log';
 #     \$Self->{'FQDN'}                              = 'localhost';
 #     \$Self->{'DefaultLanguage'}                   = 'de';
 #     \$Self->{'DefaultCharset'}                    = 'utf-8';
@@ -149,10 +152,10 @@ my $Config = {
 #     \$Self->{'Loader::Enabled::CSS'}  = 0;
 #     \$Self->{'Loader::Enabled::JS'}   = 0;
 #
-#     # Activate this setting for OTRS 7 and higher
+#     # Activate this setting for Znuny 7 and higher
 #     #\$Self->{'TestHTTPHostname'} = 'localhost:3001';
 #
-#     # DocumentSearch prefix for OTRS 7 and higher
+#     # DocumentSearch prefix for Znuny 7 and higher
 #     \$Self->{'DocumentSearch::IndexPrefix'} = '$SystemName-documentsearch';
 #
 #     # Add Selenium config (Chrome).
@@ -188,9 +191,9 @@ my $Config = {
 #    # };
 #
 #    \$Self->{TestDatabase} = {
-#        DatabaseDSN  => 'DBI:mysql:database=otrs_test;host=127.0.0.1;',
-#        DatabaseUser => 'otrs_test',
-#        DatabasePw   => 'otrs_test',
+#        DatabaseDSN  => 'DBI:mysql:database=znuny_test;host=127.0.0.1;',
+#        DatabaseUser => 'znuny_test',
+#        DatabasePw   => 'znuny_test',
 #    };
 #
 # EOD
@@ -414,12 +417,12 @@ my $Config = {
         GitIgnore => [
             #    '/path/to/ignore/',
         ],
-        CodePolicyRegisterCommand => '/path/to/your/OTRSCodePolicy/scripts/install-git-hooks.pl',
-        CodePolicyTidyCommand     => 'perl /path/to/your/OTRSCodePolicy/bin/otrs.CodePolicy.pl --all',
+        CodePolicyRegisterCommand => '/path/to/your/ZnunyCodePolicy/scripts/install-git-hooks.pl',
+        CodePolicyTidyCommand     => 'perl /path/to/your/ZnunyCodePolicy/bin/znuny.CodePolicy.pl --all',
 
         DirectoryAlias => {
             AliasName => [
-                '/path/to/your/OTRSCodePolicy/',
+                '/path/to/your/ZnunyCodePolicy/',
                 # ...
             ],
             # ...
@@ -429,7 +432,7 @@ my $Config = {
 
     # Bugzilla settings
     Bugzilla => {
-        # Bugzilla_login    => 'firstname.lastname@otrs.com',
+        # Bugzilla_login    => 'firstname.lastname@znuny.com',
         # Bugzilla_password => 'mypassword',
     },
 
@@ -446,8 +449,6 @@ my $Config = {
         ],
         public5 => [
             'path/to/FAQ-5_0',
-            'path/to/OTRSAppointmentCalendar-5_0',
-            'path/to/OTRSMasterSlave-5_0',
             'path/to/Survey-5_0',
             'path/to/SystemMonitoring-5_0',
             'path/to/TimeAccounting-5_0',

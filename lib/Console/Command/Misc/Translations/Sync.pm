@@ -1,5 +1,6 @@
 # --
-# Copyright (C) 2001-2020 OTRS AG, https://otrs.com/
+# Copyright (C) 2001-2021 OTRS AG, https://znuny.com/
+# Copyright (C) 2012 Znuny GmbH, https://znuny.com/
 # --
 # This software comes with ABSOLUTELY NO WARRANTY. For details, see
 # the enclosed file COPYING for license information (GPL). If you
@@ -26,7 +27,7 @@ use parent qw(Console::BaseCommand);
 
 =head1 NAME
 
-Console::Command::Misc::Translations::Sync - Console command to syncronuze framework and packages translations using C<Weblate> client.
+Console::Command::Misc::Translations::Sync - Console command to synchronize framework and packages translations using C<Weblate> client.
 
 =head1 DESCRIPTION
 Syncrhonize framework and packages translations using C<Weblate> client..
@@ -75,7 +76,7 @@ sub Configure {
     $Self->AdditionalHelp(<<"EOF");
 The <green>$Name</green> command fully synchronize all translation files from the framework or package by doing the following steps:
 
- 1  Commit and push the translations (.po files) from translate.otrs.com into the main stream.
+ 1  Commit and push the translations (.po files) from https://translations.znuny.org/ into the main stream.
  2  Pull main stream changes into the local clone.
  3  Link package files with a framework. (Only for packages).
  4  Delete framework cache and rebuild the configuration.
@@ -84,17 +85,17 @@ The <green>$Name</green> command fully synchronize all translation files from th
  7  Delete framework cache and rebuild the configuration.
  8  Write an entry in CHANGES.md file. (Only for framework).
  9  Commit and push the translations (.pm and pot files) and for the framework also CHANGES.md from local clone to the main stream.
- 10 Pull main stream changes into translate.otrs.com.
+ 10 Pull main stream changes into https://translations.znuny.org/.
 
 <yellow>Usage:</yellow>
 From framework root directory translate framework:
- <green>otrs.ModuleTools.pl $Self->{Name}</green>
+ <green>znuny.ModuleTools.pl $Self->{Name}</green>
 
 From framework root directory translate package:
- <green>otrs.ModuleTools.pl $Self->{Name}</green> --target-directory <yellow>/ws/<package_name_version></yellow>
+ <green>znuny.ModuleTools.pl $Self->{Name}</green> --target-directory <yellow>/ws/<package_name_version></yellow>
 
 From package root directory translate package:
- <green>otrs.ModuleTools.pl $Self->{Name}</green> --framework-directory <yellow>/ws/<framework_version></yellow>
+ <green>znuny.ModuleTools.pl $Self->{Name}</green> --framework-directory <yellow>/ws/<framework_version></yellow>
 
 <red>Known issues:</red>
 <red>*</red> .pot file is always written by the framework with the current date even if there are no changes in the content.
@@ -135,7 +136,7 @@ sub PreRun {
         && !$SOPMs[0],
         )
     {
-        die "Target direcotry: $TargetDirectory does not seem to be a valid OTRS framework or package directory.\n\n";
+        die "Target direcotry: $TargetDirectory does not seem to be a valid Znuny framework or package directory.\n\n";
     }
 
     if ( !-e "$TargetDirectory/.weblate" ) {
@@ -210,12 +211,12 @@ sub Run {
     my @Tasks = (
         {
             Message => 'Deleting Framework cache',
-            Command => "$FrameworkDirectory/bin/otrs.Console.pl Maint::Cache::Delete",
+            Command => "$FrameworkDirectory/bin/znuny.Console.pl Maint::Cache::Delete",
             Silent  => 1,
         },
         {
             Message => 'Rebuilding Framework configuration',
-            Command => "$FrameworkDirectory/bin/otrs.Console.pl Maint::Config::Rebuild --cleanup",
+            Command => "$FrameworkDirectory/bin/znuny.Console.pl Maint::Config::Rebuild --cleanup",
             Silent  => 1,
         },
     );
@@ -223,7 +224,7 @@ sub Run {
     my $TranslatOptions = $IsFrameworkTranslation ? '' : "--module-directory $TargetDirectory";
     push @Tasks, {
         Message => 'Generating Framework translations (please wait)',
-        Command => "$FrameworkDirectory/bin/otrs.Console.pl Dev::Tools::TranslationsUpdate $TranslatOptions",
+        Command => "$FrameworkDirectory/bin/znuny.Console.pl Dev::Tools::TranslationsUpdate $TranslatOptions",
     };
 
     TASK:
@@ -266,12 +267,12 @@ sub Run {
         @Tasks = (
             {
                 Message => 'Deleting Framework cache (after package removal)',
-                Command => "$FrameworkDirectory/bin/otrs.Console.pl Maint::Cache::Delete",
+                Command => "$FrameworkDirectory/bin/znuny.Console.pl Maint::Cache::Delete",
                 Silent  => 1,
             },
             {
                 Message => 'Rebuilding Framework configuration (after package removal)',
-                Command => "$FrameworkDirectory/bin/otrs.Console.pl Maint::Config::Rebuild --cleanup",
+                Command => "$FrameworkDirectory/bin/znuny.Console.pl Maint::Config::Rebuild --cleanup",
                 Silent  => 1,
             },
         );
@@ -321,7 +322,7 @@ sub Run {
     }
 
     $Self->Print("\nPlease review the .pm files\n");
-    $Self->Print("Manually run OTRS Code policy... \n");
+    $Self->Print("Manually run Znuny Code policy... \n");
     $Self->Print("Check the correct positon of the message in CHANGES.md file\n\n");
     $Self->Print(
         "Do you want to: <yellow>[C]</yellow>ommit, Commit and <yellow>[P]</yellow>ush or <yellow>[S]</yellow>top:"
@@ -403,7 +404,7 @@ sub UpdatePOFiles {
     }
 
     $Self->Print("\nPlease review the .po files\n");
-    $Self->Print("Manually run OTRS Code policy... \n\n");
+    $Self->Print("Manually run Znuny Code policy... \n\n");
     $Self->Print("Does any file was changed? <yellow>[Y]</yellow>es/<yellow>[N]o</yellow>:");
 
     my $Answer = <>;

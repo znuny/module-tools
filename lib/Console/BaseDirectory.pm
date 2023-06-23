@@ -1,5 +1,6 @@
 # --
-# Copyright (C) 2001-2020 OTRS AG, https://otrs.com/
+# Copyright (C) 2001-2021 OTRS AG, https://otrs.com/
+# Copyright (C) 2012 Znuny GmbH, https://znuny.com/
 # --
 # This software comes with ABSOLUTELY NO WARRANTY. For details, see
 # the enclosed file COPYING for license information (GPL). If you
@@ -123,7 +124,7 @@ sub GitDirectoriesList {
         # look, if an sopm exists
         my @SOPMs = glob "$Directory/*.sopm";
 
-        next DIRECTORY if $Directory !~ m{ \/otrs }xms && !@SOPMs;
+        next DIRECTORY if $Directory !~ m{ (\/otrs|\/znuny) }xms && !@SOPMs;
 
         push @{ $Param{CodePolicyDirectoryList} }, $Directory;
     }

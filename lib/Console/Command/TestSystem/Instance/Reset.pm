@@ -1,12 +1,12 @@
 # --
-# Copyright (C) 2001-2020 OTRS AG, https://otrs.com/
+# Copyright (C) 2001-2021 OTRS AG, https://otrs.com/
+# Copyright (C) 2012 Znuny GmbH, https://znuny.com/
 # --
 # This software comes with ABSOLUTELY NO WARRANTY. For details, see
 # the enclosed file COPYING for license information (GPL). If you
 # did not receive this file, see https://www.gnu.org/licenses/gpl-3.0.txt.
 # --
-
-## nofilter(TidyAll::Plugin::OTRS::Perl::Require)
+## nofilter(TidyAll::Plugin::Znuny::Perl::Require)
 
 package Console::Command::TestSystem::Instance::Reset;
 
@@ -18,7 +18,7 @@ use FindBin qw($RealBin);
 use lib dirname($RealBin);
 use lib dirname($RealBin) . "/Kernel/cpan-lib";
 
-# Also use relative path to find this if invoked inside of the OTRS directory.
+# Also use relative path to find this if invoked inside of the Znuny directory.
 use lib ".";
 use lib "./Kernel/cpan-lib";
 use lib dirname($RealBin) . '/Custom';
@@ -35,19 +35,19 @@ use Console::Command::TestSystem::Database::Fill;
 
 =head1 NAME
 
-Console::Command::TestSystem::Instance::Reset - Console command to reset an OTRS instance
+Console::Command::TestSystem::Instance::Reset - Console command to reset an Znuny instance
 
 =head1 SYNOPSIS
 
-Resets an OTRS instance and fills it up with sample data (TestSystem::Database::Fill)
+Resets an Znuny instance and fills it up with sample data (TestSystem::Database::Fill)
 
 =cut
 
-## nofilter(TidyAll::Plugin::OTRS::Perl::ObjectManagerCreation)
+## nofilter(TidyAll::Plugin::Znuny::Perl::ObjectManagerCreation)
 sub Configure {
     my ( $Self, %Param ) = @_;
 
-    $Self->Description('Reset an OTRS database and insert sample data (TestSystem::Database::Fill).');
+    $Self->Description('Reset an Znuny database and insert sample data (TestSystem::Database::Fill).');
     $Self->AddOption(
         Name        => 'framework-directory',
         Description => 'Specify a base framework directory.',
@@ -58,7 +58,7 @@ sub Configure {
 
     $Self->AddOption(
         Name        => 'fill',
-        Description => 'Specify if the OTRS database should be populated with sample data.',
+        Description => 'Specify if the Znuny database should be populated with sample data.',
         Required    => 0,
         HasValue    => 0,
     );
@@ -84,7 +84,7 @@ sub PreRun {
     }
 
     if ( !-e ( $FrameworkDirectory . '/RELEASE' ) ) {
-        die "$FrameworkDirectory does not seem to be an OTRS framework directory";
+        die "$FrameworkDirectory does not seem to be an Znuny framework directory";
     }
 
     return;
@@ -98,9 +98,9 @@ sub Run {
     # Remove possible slash at the end.
     $FrameworkDirectory =~ s{ / \z }{}xms;
 
-    $Self->Print("<yellow>Resetting OTRS instance...</yellow>\n");
+    $Self->Print("<yellow>Resetting Znuny instance...</yellow>\n");
 
-    $Self->Print("<yellow>Do you really want to reset your OTRS instance? [Y]es/[N]o: </yellow>");
+    $Self->Print("<yellow>Do you really want to reset your Znuny instance? [Y]es/[N]o: </yellow>");
     my $Answer = <STDIN>;    ## no critic
 
     # Remove white space from input.
@@ -135,21 +135,30 @@ sub Run {
 
         my %Config = %{ $Self->{Config}->{TestSystem} || {} };
 
-        # Get OTRS major version number.
-        my $OTRSReleaseString = `cat $FrameworkDirectory/RELEASE`;
-        my $OTRSMajorVersion  = '';
-        if ( $OTRSReleaseString =~ m{ VERSION \s+ = \s+ (\d+) .* \z }xms ) {
-            $OTRSMajorVersion = $1;
+        # Get Znuny major version number.
+        my $ReleaseString = `cat $FrameworkDirectory/RELEASE`;
+        my $MajorVersion  = '';
+        if ( $ReleaseString =~ m{ VERSION \s+ = \s+ (\d+) .* \z }xms ) {
+            $MajorVersion = $1;
+        }
+
+        if ( $MajorVersion >= 7 ) {
+            $Config{ProductName}   = 'Znuny';
+            $Config{ProductNameLC} = 'znuny';
+        }
+        else {
+            $Config{ProductName}   = 'OTRS';
+            $Config{ProductNameLC} = 'otrs';
         }
 
         # Define some maintenance commands.
-        if ( $OTRSMajorVersion >= 5 ) {
+        if ( $MajorVersion >= 5 ) {
             $Config{RebuildConfigCommand}
-                = "sudo -u $Config{PermissionsOTRSUser} $FrameworkDirectory/bin/otrs.Console.pl Maint::Config::Rebuild";
+                = "sudo -u $Config{PermissionsUser} $FrameworkDirectory/bin/$Config{ProductNameLC}.Console.pl Maint::Config::Rebuild";
         }
         else {
             $Config{RebuildConfigCommand}
-                = "sudo -u $Config{PermissionsOTRSUser} perl $FrameworkDirectory/bin/otrs.RebuildConfig.pl";
+                = "sudo -u $Config{PermissionsUser} perl $FrameworkDirectory/bin/$Config{ProductNameLC}.RebuildConfig.pl";
         }
 
         $Self->System( $Config{RebuildConfigCommand} );

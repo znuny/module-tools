@@ -1,12 +1,13 @@
 # --
-# Copyright (C) 2001-2020 OTRS AG, https://otrs.com/
+# Copyright (C) 2001-2021 OTRS AG, https://otrs.com/
+# Copyright (C) 2012 Znuny GmbH, https://znuny.com/
 # --
 # This software comes with ABSOLUTELY NO WARRANTY. For details, see
 # the enclosed file COPYING for license information (GPL). If you
 # did not receive this file, see https://www.gnu.org/licenses/gpl-3.0.txt.
 # --
+## nofilter(TidyAll::Plugin::Znuny::CodeStyle::STDERRCheck)
 
-## nofilter(TidyAll::Plugin::OTRS::Perl::Require)
 package Console::BaseCommand;
 
 use strict;
@@ -379,9 +380,9 @@ sub Execute {
     # Don't allow to run these scripts as root.
     if ( !$ParsedGlobalOptions->{'allow-root'} && $> == 0 ) {    # $EFFECTIVE_USER_ID
         $Self->PrintError(
-            "You cannot run otrs.ModuleTools.pl as root. Please run it as the 'otrs' user or with the help of su:"
+            "You cannot run znuny.ModuleTools.pl as root. Please run it as the 'znuny' user or with the help of su:"
         );
-        $Self->Print("  <yellow>su -c \"bin/otrs.ModuleTools.pl MyCommand\" -s /bin/bash otrs</yellow>\n");
+        $Self->Print("  <yellow>su -c \"bin/znuny.ModuleTools.pl MyCommand\" -s /bin/bash znuny</yellow>\n");
         return $Self->ExitCodeError();
     }
 
@@ -491,7 +492,7 @@ sub GetUsageHelp {
 
     my $UsageText = "<green>$Self->{Description}</green>\n";
     $UsageText .= "\n<yellow>Usage:</yellow>\n";
-    $UsageText .= " otrs.ModuleTools.pl $Self->{Name}";
+    $UsageText .= " znuny.ModuleTools.pl $Self->{Name}";
 
     my $OptionsText   = "<yellow>Options:</yellow>\n";
     my $ArgumentsText = "<yellow>Arguments:</yellow>\n";

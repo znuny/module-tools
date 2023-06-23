@@ -1,12 +1,13 @@
 # --
-# Copyright (C) 2001-2020 OTRS AG, https://otrs.com/
+# Copyright (C) 2001-2021 OTRS AG, https://otrs.com/
+# Copyright (C) 2012 Znuny GmbH, https://znuny.com/
 # --
 # This software comes with ABSOLUTELY NO WARRANTY. For details, see
 # the enclosed file COPYING for license information (GPL). If you
 # did not receive this file, see https://www.gnu.org/licenses/gpl-3.0.txt.
 # --
 
-## nofilter(TidyAll::Plugin::OTRS::Perl::Require)
+## nofilter(TidyAll::Plugin::Znuny::Perl::Require)
 package Console::BaseModule;
 
 use strict;
@@ -18,7 +19,7 @@ use lib dirname($RealBin);
 use lib dirname($RealBin) . "/Kernel/cpan-lib";
 use lib dirname($RealBin) . '/Custom';
 
-# Also use relative path to find this if invoked inside of the OTRS directory.
+# Also use relative path to find this if invoked inside of the Znuny directory.
 use lib ".";
 use lib "./Kernel/cpan-lib";
 use lib "./Custom";
@@ -54,7 +55,7 @@ Returns:
 
 =cut
 
-## nofilter(TidyAll::Plugin::OTRS::Perl::ObjectManagerCreation)
+## nofilter(TidyAll::Plugin::Znuny::Perl::ObjectManagerCreation)
 sub CodeActionHandler {
     my ( $Self, %Param ) = @_;
 
@@ -72,7 +73,7 @@ sub CodeActionHandler {
     $CommonObject{ConfigObject} = Kernel::Config->new();
     $CommonObject{EncodeObject} = Kernel::System::Encode->new(%CommonObject);
     $CommonObject{LogObject}    = Kernel::System::Log->new(
-        LogPrefix    => "OTRS-$Module",
+        LogPrefix    => "Znuny-$Module",
         ConfigObject => $CommonObject{ConfigObject},
     );
     $CommonObject{MainObject}    = Kernel::System::Main->new(%CommonObject);
@@ -158,7 +159,7 @@ sub DatabaseActionHandler {
     $CommonObject{ConfigObject} = Kernel::Config->new();
     $CommonObject{EncodeObject} = Kernel::System::Encode->new(%CommonObject);
     $CommonObject{LogObject}    = Kernel::System::Log->new(
-        LogPrefix    => "OTRS-$Module",
+        LogPrefix    => "Znuny-$Module",
         ConfigObject => $CommonObject{ConfigObject},
     );
     $CommonObject{MainObject}    = Kernel::System::Main->new(%CommonObject);

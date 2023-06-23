@@ -1,5 +1,6 @@
 # --
-# Copyright (C) 2001-2020 OTRS AG, https://otrs.com/
+# Copyright (C) 2001-2021 OTRS AG, https://otrs.com/
+# Copyright (C) 2012 Znuny GmbH, https://znuny.com/
 # --
 # This software comes with ABSOLUTELY NO WARRANTY. For details, see
 # the enclosed file COPYING for license information (GPL). If you
@@ -26,12 +27,12 @@ sub Configure {
 sub Run {
     my ( $Self, %Param ) = @_;
 
-    my $ProductName    = "OTRS Module Tools";
+    my $ProductName    = "Znuny Module Tools";
     my $ProductVersion = 'git';
 
     my $UsageText = "<green>$ProductName</green> (<yellow>$ProductVersion</yellow>)\n\n";
     $UsageText .= "<yellow>Usage:</yellow>\n";
-    $UsageText .= " otrs.ModuleTools.pl command [options] [arguments]\n";
+    $UsageText .= " znuny.ModuleTools.pl command [options] [arguments]\n";
     $UsageText .= "\n<yellow>Options:</yellow>\n";
     GLOBALOPTION:
     for my $Option ( @{ $Self->{_GlobalOptions} // [] } ) {

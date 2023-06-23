@@ -1,5 +1,6 @@
 # --
-# Copyright (C) 2001-2020 OTRS AG, https://otrs.com/
+# Copyright (C) 2001-2021 OTRS AG, https://otrs.com/
+# Copyright (C) 2012 Znuny GmbH, https://znuny.com/
 # --
 # This software comes with ABSOLUTELY NO WARRANTY. For details, see
 # the enclosed file COPYING for license information (GPL). If you
@@ -87,7 +88,7 @@ sub Run {
 
     my @DevelDirectories = $Self->DevelDirectoriesGet();
 
-    # Get a list of all git directories and OTRSCodePolicy directories.
+    # Get a list of all git directories and ZnunyCodePolicy directories.
     my @GitDirectoryList;
     my @CodePolicyDirectoryList;
 
@@ -164,7 +165,7 @@ sub Run {
         }
     }
 
-    # Register OTRS code policy.
+    # Register Znuny code policy.
     DIRECTORY:
     for my $Directory (@CodePolicyDirectoryList) {
 

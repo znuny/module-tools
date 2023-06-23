@@ -15,7 +15,6 @@ or install them with help of Debian packages:
 
     sudo apt install libdatetime-perl libgetopt-complete-perl libio-interactive-perl libstring-similarity-perl libxmlrpc-lite-perl
 
-
 Then please copy the default configuration and change it with your data:
 
     cd /path/to/module-tools
@@ -25,15 +24,15 @@ Then please copy the default configuration and change it with your data:
 Developer operation
 -------------------
 
-Developers can use the tools by invoking console command under OTRS user:
+Developers can use the tools by invoking console command under Znuny user:
 
     # Get command overview
-    sudo -u otrs /path/to/module-tools/bin/otrs.ModuleTools.pl
+    sudo -u znuny /path/to/module-tools/bin/znuny.ModuleTools.pl
 
     # Install test instance
-    sudo -u otrs /path/to/module-tools/bin/otrs.ModuleTools.pl TestSystem::Instance::Setup --framework-directory /path/to/otrs --fred-directory /path/to/Fred
+    sudo -u znuny /path/to/module-tools/bin/znuny.ModuleTools.pl TestSystem::Instance::Setup --framework-directory /path/to/znuny --fred-directory /path/to/Fred
 
 On some systems it may be required to run instance setup as root user:
 
-    # Install test instance of OTRS as root
-    sudo /path/to/module-tools/bin/otrs.ModuleTools.pl TestSystem::Instance::Setup --allow-root --framework-directory /path/to/otrs --fred-directory /path/to/Fred
+    # Install test instance of Znuny as root
+    sudo /path/to/module-tools/bin/znuny.ModuleTools.pl TestSystem::Instance::Setup --allow-root --framework-directory /path/to/znuny --fred-directory /path/to/Fred
