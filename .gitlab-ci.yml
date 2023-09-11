@@ -1,4 +1,4 @@
-image: $JOB_IMAGE
+image: registry.znuny.com/znuny/internal/docker-znuny-ci:7.0
 
 include:
   - project: $INCLUDE_PROJECT

@@ -504,10 +504,11 @@ EOD
     );
 
     if ( $MajorVersion >= 7 ) {
-#         $Self->Print("\n  <yellow>Installing npm dependencies...</yellow>\n");
-#         $Self->System(
-#             "cd $FrameworkDirectory && npm install --no-save"
-#         );
+
+        #         $Self->Print("\n  <yellow>Installing npm dependencies...</yellow>\n");
+        #         $Self->System(
+        #             "cd $FrameworkDirectory && npm install --no-save"
+        #         );
         $Self->Print(
             "\n  <yellow>Start the development webserver with bin/$Config{ProductNameLC}.Console.pl Dev::Tools::WebServer</yellow>\n"
         );
