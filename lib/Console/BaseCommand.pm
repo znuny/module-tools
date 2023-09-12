@@ -865,4 +865,25 @@ sub _GetConfig {
 
 }
 
+=head2 _AssertPlainFile()
+
+makes sure that its argument is the name of a plain file, i.e. not a directory, socket, etc.
+Returns the file name if it is valid, dies with an error message otherwise.
+
+    $ValidFile = $Self->_AssertPlainFile( "foo.xml" );
+
+=cut
+
+sub _AssertPlainFile {
+    my ($Self, $Filename) = @_;
+
+    if ( ! -e "$Filename" ) {
+        die "Can not find file $Filename!\n";
+    }
+    if ( !-f "$Filename" ) {
+        die "$Filename exists but is not a plain file.\n";
+    }
+    return $Filename;
+}
+
 1;

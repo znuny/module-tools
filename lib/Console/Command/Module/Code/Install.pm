@@ -11,14 +11,14 @@ package Console::Command::Module::Code::Install;
 
 use strict;
 use warnings;
-
+use utf8;
 use File::Spec();
 
 use parent qw(Console::BaseCommand Console::BaseModule);
 
 =head1 NAME
 
-Console::Command::Module::Code::Install - Console command to execute the <CodeInstall> section of a module.
+Console::Command::Module::Code::Install - Console command to execute the &lt;CodeInstall&gt; section of a module.
 
 =head1 DESCRIPTION
 
@@ -58,9 +58,7 @@ sub PreRun {
     my $Module = $Self->GetArgument('module-file-path');
 
     # Check if .sopm file exists.
-    if ( !-e "$Module" ) {
-        die "Can not find file $Module!\n";
-    }
+    $Self->_AssertPlainFile( $Module );
 
     return;
 }
