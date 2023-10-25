@@ -33,17 +33,29 @@ my $Config = {
         # the path to your workspace directory, w/ leading and trailing slashes
         EnvironmentRoot => '/ws/',
 
+        # Database Host (e.g. 127.0.0.1)
+        DatabaseHostMysql => '127.0.0.1',
+
         # User name for mysql (should be the same that you usually use to install a local Znuny).
         DatabaseUserNameMysql => 'root',
 
         # Password for your mysql user.
         DatabasePasswordMysql => '',
 
+        # Database Host (e.g. 127.0.0.1)
+        DatabaseHostPostgresql => '127.0.0.1',
+
         # User name for PostgreSQL.
         DatabaseUserNamePostgresql => 'postgres',
 
         # Password for your PostgreSQL user.
         DatabasePasswordPostgresql => '',
+
+        # Database Home Oracle '/path/to/your/oracle' (e.g. /u01/app/oracle/product/11.2.0/xe)
+        DatabaseHomeOracle => '/u01/app/oracle/product/11.2.0/xe',
+
+        # Database Host (e.g. 127.0.0.1)
+        DatabaseHostOracle => '127.0.0.1',
 
         # User name for Oracle.
         DatabaseUserNameOracle => 'sys',

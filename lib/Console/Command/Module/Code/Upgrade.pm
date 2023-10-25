@@ -66,7 +66,7 @@ sub PreRun {
     my $Module = $Self->GetArgument('module-file-path');
 
     # Check if .sopm file exists.
-    $Self->_AssertPlainFile( $Module );
+    $Self->_AssertPlainFile($Module);
 
     return;
 }

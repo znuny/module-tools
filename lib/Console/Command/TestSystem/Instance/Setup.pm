@@ -188,21 +188,50 @@ sub Run {
 
         my $ConfigStr = $Self->ReadFile( $FrameworkDirectory . '/Kernel/Config.pm.dist' );
         $ConfigStr =~ s{/opt/$Config{ProductNameLC}}{$FrameworkDirectory}xmsg;
-        $ConfigStr =~ s{('$Config{ProductNameLC}'|'some-pass')}{'$DatabaseSystemName'}xmsg;
 
-        if ( $DatabaseType eq 'Postgresql' ) {
+        if ( $DatabaseType eq 'Mysql' ) {
+            $ConfigStr =~ s{(\$Self->\{DatabaseHost\} =) '127.0.0.1';}{$1 '$Config{DatabaseHostMysql}';}msg
+                if $Config{DatabaseHostMysql};
+            $ConfigStr =~ s{(\$Self->\{DatabaseUser\} =) 'znuny';}{$1 '$Config{DatabaseUserNameMysql}';}msg
+                if $Config{DatabaseUserNameMysql};
+            $ConfigStr =~ s{(\$Self->\{DatabasePw\} =) 'some-pass';}{$1 '$Config{DatabasePasswordMysql}';}msg
+                if $Config{DatabasePasswordMysql};
+            $ConfigStr =~ s{(\$Self->\{Database\} =) 'znuny';}{$1 '$Config{DatabaseTableMysql}';}msg
+                if $Config{DatabaseTableMysql};
+
+        }
+        elsif ( $DatabaseType eq 'Postgresql' ) {
+            $ConfigStr =~ s{(\$Self->\{DatabaseHost\} =) '127.0.0.1';}{$1 '$Config{DatabaseHostPostgresql}';}msg
+                if $Config{DatabaseHostPostgresql};
+            $ConfigStr =~ s{(\$Self->\{DatabaseUser\} =) 'znuny';}{$1 '$Config{DatabaseUserNamePostgresql}';}msg
+                if $Config{DatabaseUserNamePostgresql};
+            $ConfigStr =~ s{(\$Self->\{DatabasePw\} =) 'some-pass';}{$1 '$Config{DatabasePasswordPostgresql}';}msg
+                if $Config{DatabasePasswordPostgresql};
+            $ConfigStr =~ s{(\$Self->\{Database\} =) 'znuny';}{$1 '$Config{DatabaseTablePostgresql}';}msg
+                if $Config{DatabaseTablePostgresql};
+
             $ConfigStr
                 =~ s{^#(    \$Self->\{DatabaseDSN\} = "DBI:Pg:dbname=\$Self->\{Database\};host=\$Self->\{DatabaseHost\};";)$}{$1}msg;
         }
         elsif ( $DatabaseType eq 'Oracle' ) {
-            $ConfigStr =~ s{\$Self->\{Database\} = '$DatabaseSystemName';}{\$Self->{Database} = 'XE';}msg;
+            $ConfigStr =~ s{(\$Self->\{DatabaseHost\} =) '127.0.0.1';}{$1 '$Config{DatabaseHostOracle}';}msg
+                if $Config{DatabaseHostOracle};
+            $ConfigStr =~ s{(\$Self->\{DatabaseUser\} =) 'znuny';}{$1 '$Config{DatabaseUserNameOracle}';}msg
+                if $Config{DatabaseUserNameOracle};
+            $ConfigStr =~ s{(\$Self->\{DatabasePw\} =) 'some-pass';}{$1 '$Config{DatabasePasswordOracle}';}msg
+                if $Config{DatabasePasswordOracle};
+            $ConfigStr =~ s{(\$Self->\{Database\} =) 'znuny';}{$1 '$Config{DatabaseTableOracle}';}msg
+                if $Config{DatabaseTableOracle};
+
             $ConfigStr
-                =~ s{^#(    \$Self->\{DatabaseDSN\} = "DBI:Oracle://\$Self->\{DatabaseHost\}:1521/\$Self->\{Database\}";)$}{$1}msg;
+                =~ s{^\#(    \$Self->\{DatabaseDSN\} = "DBI:Oracle:\/\/\$Self->\{DatabaseHost\}:1521\/\$Self->\{Database\}";)$}{$1}msg;
             $ConfigStr
-                =~ s{^#    \$ENV\{ORACLE_HOME\}     = '/path/to/your/oracle';$}{    \$ENV{ORACLE_HOME}     = "/u01/app/oracle/product/11.2.0/xe";}msg;
-            $ConfigStr =~ s{^#(    \$ENV\{NLS_DATE_FORMAT\} = 'YYYY-MM-DD HH24:MI:SS';)$}{$1}msg;
-            $ConfigStr =~ s{^#(    \$ENV\{NLS_LANG\}        = 'AMERICAN_AMERICA.AL32UTF8';)$}{$1}msg;
+                =~ s{^\#    \$ENV\{ORACLE_HOME\}     = '/path/to/your/oracle';$}{    \$ENV{ORACLE_HOME}     = "$Config{DatabaseHomeOracle}";}msg;
+            $ConfigStr =~ s{^\#(    \$ENV\{NLS_DATE_FORMAT\} = 'YYYY-MM-DD HH24:MI:SS';)$}{$1}msg;
+            $ConfigStr =~ s{^\#(    \$ENV\{NLS_LANG\}        = 'AMERICAN_AMERICA.AL32UTF8';)$}{$1}msg;
         }
+
+        $ConfigStr =~ s{('$Config{ProductNameLC}'|'some-pass')}{'$DatabaseSystemName'}xmsg;
 
         # Inject some more data.
         my $ConfigInjectStr = <<"EOD";
@@ -347,7 +376,7 @@ EOD
             # Enable lines for Oracle.
             elsif ( $DatabaseType eq 'Oracle' ) {
                 $ApacheModPerlConfigStr
-                    =~ s{^(\$ENV\{MOD_PERL\}.*?;)$}{$1\n\n\$ENV{ORACLE_HOME}     = "/u01/app/oracle/product/11.2.0/xe";\n\$ENV{NLS_DATE_FORMAT} = "YYYY-MM-DD HH24:MI:SS";\n\$ENV{NLS_LANG}        = "AMERICAN_AMERICA.AL32UTF8";}msg;
+                    =~ s{^(\$ENV\{MOD_PERL\}.*?;)$}{$1\n\n\$ENV{ORACLE_HOME}     = "$Config{DatabaseHomeOracle}";\n\$ENV{NLS_DATE_FORMAT} = "YYYY-MM-DD HH24:MI:SS";\n\$ENV{NLS_LANG}        = "AMERICAN_AMERICA.AL32UTF8";}msg;
                 $ApacheModPerlConfigStr =~ s{^#(use DBD::Oracle \(\);)$}{$1}msg;
                 $ApacheModPerlConfigStr =~ s{^#(use Kernel::System::DB::oracle;)$}{$1}msg;
             }
@@ -370,16 +399,16 @@ EOD
         $DSN = 'DBI:mysql:';
     }
     elsif ( $DatabaseType eq 'Postgresql' ) {
-        $DSN = 'DBI:Pg:;host=127.0.0.1';
+        $DSN = "DBI:Pg:;host=$Config{DatabaseHostPostgresql}";
     }
     elsif ( $DatabaseType eq 'Oracle' ) {
-        $DSN = 'DBI:Oracle://127.0.0.1:1521/XE';
+        $DSN = "DBI:Oracle://$Config{DatabaseHostOracle}:1521/XE";
         ## nofilter(TidyAll::Plugin::Znuny::Perl::Require)
         require DBD::Oracle;    ## no critic
         push @DBIParam, {
             ora_session_mode => $DBD::Oracle::ORA_SYSDBA,    ## no critic
         };
-        $ENV{ORACLE_HOME} = "/u01/app/oracle/product/11.2.0/xe";    ## no critic
+        $ENV{ORACLE_HOME} = "$Config{DatabaseHomeOracle}";    ## no critic
     }
 
     my $DBH = DBI->connect(
@@ -504,11 +533,6 @@ EOD
     );
 
     if ( $MajorVersion >= 7 ) {
-
-        #         $Self->Print("\n  <yellow>Installing npm dependencies...</yellow>\n");
-        #         $Self->System(
-        #             "cd $FrameworkDirectory && npm install --no-save"
-        #         );
         $Self->Print(
             "\n  <yellow>Start the development webserver with bin/$Config{ProductNameLC}.Console.pl Dev::Tools::WebServer</yellow>\n"
         );

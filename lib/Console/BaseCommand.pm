@@ -875,9 +875,9 @@ Returns the file name if it is valid, dies with an error message otherwise.
 =cut
 
 sub _AssertPlainFile {
-    my ($Self, $Filename) = @_;
+    my ( $Self, $Filename ) = @_;
 
-    if ( ! -e "$Filename" ) {
+    if ( !-e "$Filename" ) {
         die "Can not find file $Filename!\n";
     }
     if ( !-f "$Filename" ) {
