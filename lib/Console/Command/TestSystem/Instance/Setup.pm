@@ -38,7 +38,7 @@ Configure settings, Database and Apache of a testing Znuny instance
 sub Configure {
     my ( $Self, %Param ) = @_;
 
-    $Self->Description('Setup a testing Znuny instance.');
+    $Self->Description('Set up a testing Znuny instance.');
     $Self->AddOption(
         Name        => 'framework-directory',
         Description => "Specify a base framework directory to set it up.",
@@ -192,22 +192,22 @@ sub Run {
         if ( $DatabaseType eq 'Mysql' ) {
             $ConfigStr =~ s{(\$Self->\{DatabaseHost\} =) '127.0.0.1';}{$1 '$Config{DatabaseHostMysql}';}msg
                 if $Config{DatabaseHostMysql};
-            $ConfigStr =~ s{(\$Self->\{DatabaseUser\} =) 'znuny';}{$1 '$Config{DatabaseUserNameMysql}';}msg
+            $ConfigStr =~ s{(\$Self->\{DatabaseUser\} =) '$Config{ProductNameLC}';}{$1 '$Config{DatabaseUserNameMysql}';}msg
                 if $Config{DatabaseUserNameMysql};
             $ConfigStr =~ s{(\$Self->\{DatabasePw\} =) 'some-pass';}{$1 '$Config{DatabasePasswordMysql}';}msg
                 if $Config{DatabasePasswordMysql};
-            $ConfigStr =~ s{(\$Self->\{Database\} =) 'znuny';}{$1 '$Config{DatabaseTableMysql}';}msg
+            $ConfigStr =~ s{(\$Self->\{Database\} =) '$Config{ProductNameLC}';}{$1 '$Config{DatabaseTableMysql}';}msg
                 if $Config{DatabaseTableMysql};
 
         }
         elsif ( $DatabaseType eq 'Postgresql' ) {
             $ConfigStr =~ s{(\$Self->\{DatabaseHost\} =) '127.0.0.1';}{$1 '$Config{DatabaseHostPostgresql}';}msg
                 if $Config{DatabaseHostPostgresql};
-            $ConfigStr =~ s{(\$Self->\{DatabaseUser\} =) 'znuny';}{$1 '$Config{DatabaseUserNamePostgresql}';}msg
+            $ConfigStr =~ s{(\$Self->\{DatabaseUser\} =) '$Config{ProductNameLC}';}{$1 '$Config{DatabaseUserNamePostgresql}';}msg
                 if $Config{DatabaseUserNamePostgresql};
             $ConfigStr =~ s{(\$Self->\{DatabasePw\} =) 'some-pass';}{$1 '$Config{DatabasePasswordPostgresql}';}msg
                 if $Config{DatabasePasswordPostgresql};
-            $ConfigStr =~ s{(\$Self->\{Database\} =) 'znuny';}{$1 '$Config{DatabaseTablePostgresql}';}msg
+            $ConfigStr =~ s{(\$Self->\{Database\} =) '$Config{ProductNameLC}';}{$1 '$Config{DatabaseTablePostgresql}';}msg
                 if $Config{DatabaseTablePostgresql};
 
             $ConfigStr
@@ -216,11 +216,11 @@ sub Run {
         elsif ( $DatabaseType eq 'Oracle' ) {
             $ConfigStr =~ s{(\$Self->\{DatabaseHost\} =) '127.0.0.1';}{$1 '$Config{DatabaseHostOracle}';}msg
                 if $Config{DatabaseHostOracle};
-            $ConfigStr =~ s{(\$Self->\{DatabaseUser\} =) 'znuny';}{$1 '$Config{DatabaseUserNameOracle}';}msg
+            $ConfigStr =~ s{(\$Self->\{DatabaseUser\} =) '$Config{ProductNameLC}';}{$1 '$Config{DatabaseUserNameOracle}';}msg
                 if $Config{DatabaseUserNameOracle};
             $ConfigStr =~ s{(\$Self->\{DatabasePw\} =) 'some-pass';}{$1 '$Config{DatabasePasswordOracle}';}msg
                 if $Config{DatabasePasswordOracle};
-            $ConfigStr =~ s{(\$Self->\{Database\} =) 'znuny';}{$1 '$Config{DatabaseTableOracle}';}msg
+            $ConfigStr =~ s{(\$Self->\{Database\} =) '$Config{ProductNameLC}';}{$1 '$Config{DatabaseTableOracle}';}msg
                 if $Config{DatabaseTableOracle};
 
             $ConfigStr
@@ -236,7 +236,7 @@ sub Run {
         # Inject some more data.
         my $ConfigInjectStr = <<"EOD";
 
-        \$Self->{'SecureMode'} = 1;
+        \$Self->{'SecureMode'}          = 1;
         \$Self->{'SystemID'}            = '54';
         \$Self->{'SessionName'}         = '$SystemName';
         \$Self->{'ProductName'}         = '$SystemName';
@@ -252,7 +252,8 @@ sub Run {
         \$Self->{'DefaultCharset'}      = 'utf-8';
         \$Self->{'AdminEmail'}          = 'root\@localhost';
         \$Self->{'Package::Timeout'}    = '120';
-        \$Self->{'SendmailModule'}      =  'Kernel::System::Email::DoNotSendEmail';
+        \$Self->{'SendmailModule'}      = 'Kernel::System::Email::DoNotSendEmail';
+        \$Self->{'WebMaxFileUpload'}    = 104857600;
 
         # Fred
         \$Self->{'Fred::BackgroundColor'} = '#006ea5';
@@ -272,6 +273,7 @@ sub Run {
             port                => '4444',
             browser_name        => 'firefox',
             platform            => 'ANY',
+            is_wd3              => 1, # web driver v3
             extra_capabilities  => {
                 marionette => '',
             },
@@ -321,17 +323,10 @@ EOD
     # Copy apache mod perl file.
     my $ApacheModPerlFile = "$Config{ApacheCFGDir}$SystemName.apache2-perl-startup.pl";
     if ( -e "$FrameworkDirectory/scripts/apache2-perl-startup.pl" ) {
-        $Self->System(
-            "sudo cp -p $FrameworkDirectory/scripts/apache2-httpd.include.conf $ApacheConfigFile"
-        );
-
-        # Copy apache mod perl file.
         my $ApacheModPerlFile = "$Config{ApacheCFGDir}$SystemName.apache2-perl-startup.pl";
-        if ( -e $ApacheModPerlFile ) {
-            $Self->System(
-                "sudo cp -p $FrameworkDirectory/scripts/apache2-perl-startup.pl $ApacheModPerlFile"
-            );
-        }
+        $Self->System(
+            "sudo cp -p $FrameworkDirectory/scripts/apache2-perl-startup.pl $ApacheModPerlFile"
+        );
 
         $Self->Print("\n  <yellow>Editing Apache config...</yellow>\n");
         {

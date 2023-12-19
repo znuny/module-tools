@@ -100,6 +100,7 @@ my $Config = {
 #     \$Self->{'AdminEmail'}                        = 'root\@localhost';
 #     \$Self->{'Package::Timeout'}                  = '120';
 #     \$Self->{'SendmailModule'}                    =  'Kernel::System::Email::DoNotSendEmail';
+#     \$Self->{'WebMaxFileUpload'}                  = 104857600;
 #     \$Self->{'SwitchToAgent'}                     = 1;
 #     \$Self->{'SwitchToCustomer'}                  = 1;
 #
@@ -212,6 +213,12 @@ my $Config = {
 #        DatabaseUser => 'znuny_test',
 #        DatabasePw   => 'znuny_test',
 #    };
+#
+#     # Fred
+#     \$Self->{'Fred::BackgroundColor'} = '#006ea5';
+#     \$Self->{'Fred::SystemName'}      = '$SystemName';
+#     \$Self->{'Fred::ConsoleOpacity'}  = '0.7';
+#     \$Self->{'Fred::ConsoleWidth'}    = '30%';
 #
 # EOD
 # ,

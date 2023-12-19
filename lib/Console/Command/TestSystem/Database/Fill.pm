@@ -152,7 +152,7 @@ sub Run {
 
     # Add Agents.
     AGENT:
-    for my $Agent ( @{ $Config{Agents} } ) {
+    for my $Agent ( @{ $Config{Agents} // [] } ) {
 
         next AGENT if !$Agent;
         next AGENT if !%{$Agent};
@@ -223,7 +223,7 @@ sub Run {
 
     # Add Customer Companies.
     CUSTOMERCOMPANY:
-    for my $CustomerCompany ( @{ $Config{CustomerCompanies} } ) {
+    for my $CustomerCompany ( @{ $Config{CustomerCompanies} // [] } ) {
 
         next CUSTOMERCOMPANY if !$CustomerCompany;
         next CUSTOMERCOMPANY if !%{$CustomerCompany};
@@ -251,7 +251,7 @@ sub Run {
 
     # Add Customers.
     CUSTOMER:
-    for my $Customer ( @{ $Config{Customers} } ) {
+    for my $Customer ( @{ $Config{Customers} // [] } ) {
 
         next CUSTOMER if !$Customer;
         next CUSTOMER if !%{$Customer};
@@ -339,7 +339,7 @@ sub Run {
     # Add Services.
     my %ServicesNameToID;
     SERVICE:
-    for my $Service ( @{ $Config{Services} } ) {
+    for my $Service ( @{ $Config{Services} // [] } ) {
 
         next SERVICE if !$Service;
         next SERVICE if !%{$Service};
@@ -376,7 +376,7 @@ sub Run {
 
     # Add SLAs and connect them with the Services.
     SLA:
-    for my $SLA ( @{ $Config{SLAs} } ) {
+    for my $SLA ( @{ $Config{SLAs} // [] } ) {
 
         next SLA if !$SLA;
         next SLA if !%{$SLA};
