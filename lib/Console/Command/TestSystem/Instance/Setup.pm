@@ -192,7 +192,8 @@ sub Run {
         if ( $DatabaseType eq 'Mysql' ) {
             $ConfigStr =~ s{(\$Self->\{DatabaseHost\} =) '127.0.0.1';}{$1 '$Config{DatabaseHostMysql}';}msg
                 if $Config{DatabaseHostMysql};
-            $ConfigStr =~ s{(\$Self->\{DatabaseUser\} =) '$Config{ProductNameLC}';}{$1 '$Config{DatabaseUserNameMysql}';}msg
+            $ConfigStr
+                =~ s{(\$Self->\{DatabaseUser\} =) '$Config{ProductNameLC}';}{$1 '$Config{DatabaseUserNameMysql}';}msg
                 if $Config{DatabaseUserNameMysql};
             $ConfigStr =~ s{(\$Self->\{DatabasePw\} =) 'some-pass';}{$1 '$Config{DatabasePasswordMysql}';}msg
                 if $Config{DatabasePasswordMysql};
@@ -203,11 +204,13 @@ sub Run {
         elsif ( $DatabaseType eq 'Postgresql' ) {
             $ConfigStr =~ s{(\$Self->\{DatabaseHost\} =) '127.0.0.1';}{$1 '$Config{DatabaseHostPostgresql}';}msg
                 if $Config{DatabaseHostPostgresql};
-            $ConfigStr =~ s{(\$Self->\{DatabaseUser\} =) '$Config{ProductNameLC}';}{$1 '$Config{DatabaseUserNamePostgresql}';}msg
+            $ConfigStr
+                =~ s{(\$Self->\{DatabaseUser\} =) '$Config{ProductNameLC}';}{$1 '$Config{DatabaseUserNamePostgresql}';}msg
                 if $Config{DatabaseUserNamePostgresql};
             $ConfigStr =~ s{(\$Self->\{DatabasePw\} =) 'some-pass';}{$1 '$Config{DatabasePasswordPostgresql}';}msg
                 if $Config{DatabasePasswordPostgresql};
-            $ConfigStr =~ s{(\$Self->\{Database\} =) '$Config{ProductNameLC}';}{$1 '$Config{DatabaseTablePostgresql}';}msg
+            $ConfigStr
+                =~ s{(\$Self->\{Database\} =) '$Config{ProductNameLC}';}{$1 '$Config{DatabaseTablePostgresql}';}msg
                 if $Config{DatabaseTablePostgresql};
 
             $ConfigStr
@@ -216,7 +219,8 @@ sub Run {
         elsif ( $DatabaseType eq 'Oracle' ) {
             $ConfigStr =~ s{(\$Self->\{DatabaseHost\} =) '127.0.0.1';}{$1 '$Config{DatabaseHostOracle}';}msg
                 if $Config{DatabaseHostOracle};
-            $ConfigStr =~ s{(\$Self->\{DatabaseUser\} =) '$Config{ProductNameLC}';}{$1 '$Config{DatabaseUserNameOracle}';}msg
+            $ConfigStr
+                =~ s{(\$Self->\{DatabaseUser\} =) '$Config{ProductNameLC}';}{$1 '$Config{DatabaseUserNameOracle}';}msg
                 if $Config{DatabaseUserNameOracle};
             $ConfigStr =~ s{(\$Self->\{DatabasePw\} =) 'some-pass';}{$1 '$Config{DatabasePasswordOracle}';}msg
                 if $Config{DatabasePasswordOracle};
@@ -418,13 +422,7 @@ EOD
     {
         if ( $DatabaseType eq 'Mysql' ) {
             $DBH->do("DROP DATABASE IF EXISTS $DatabaseSystemName");
-
-            my $Charset = 'utf8mb4';
-            if ( $MajorVersion < 8 ) {
-                $Charset = 'utf8';
-            }
-
-            $DBH->do("CREATE DATABASE $DatabaseSystemName charset $Charset");
+            $DBH->do("CREATE DATABASE $DatabaseSystemName charset utf8mb4");
             $DBH->do("use $DatabaseSystemName");
         }
         elsif ( $DatabaseType eq 'Postgresql' ) {
@@ -464,7 +462,6 @@ EOD
             $DBH->do(
                 "GRANT ALL PRIVILEGES ON $DatabaseSystemName.* TO $DatabaseSystemName\@localhost;"
             );
-            $DBH->do('FLUSH PRIVILEGES');
         }
         elsif ( $DatabaseType eq 'Postgresql' ) {
             $DBH->do("CREATE USER $DatabaseSystemName WITH PASSWORD '$DatabaseSystemName'");
