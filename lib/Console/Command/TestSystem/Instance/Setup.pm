@@ -198,6 +198,7 @@ sub Run {
             $ConfigStr =~ s{(\$Self->\{DatabasePw\} =) 'some-pass';}{$1 '$Config{DatabasePasswordMysql}';}msg
                 if $Config{DatabasePasswordMysql};
             $ConfigStr =~ s{(\$Self->\{Database\} =) '$Config{ProductNameLC}';}{$1 '$Config{DatabaseTableMysql}';}msg
+
                 if $Config{DatabaseTableMysql};
 
         }
@@ -211,6 +212,7 @@ sub Run {
                 if $Config{DatabasePasswordPostgresql};
             $ConfigStr
                 =~ s{(\$Self->\{Database\} =) '$Config{ProductNameLC}';}{$1 '$Config{DatabaseTablePostgresql}';}msg
+
                 if $Config{DatabaseTablePostgresql};
 
             $ConfigStr
@@ -225,6 +227,7 @@ sub Run {
             $ConfigStr =~ s{(\$Self->\{DatabasePw\} =) 'some-pass';}{$1 '$Config{DatabasePasswordOracle}';}msg
                 if $Config{DatabasePasswordOracle};
             $ConfigStr =~ s{(\$Self->\{Database\} =) '$Config{ProductNameLC}';}{$1 '$Config{DatabaseTableOracle}';}msg
+
                 if $Config{DatabaseTableOracle};
 
             $ConfigStr
