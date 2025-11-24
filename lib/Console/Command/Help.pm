@@ -23,7 +23,7 @@ sub Configure {
 
     $Self->Description('Displays help for an existing command or search for commands.');
     $Self->AddArgument(
-        Name => 'command',
+        Name        => 'command',
         Description =>
             "Print usage information for this command (if command is available) or search for commands with similar names.",
         ValueRegex => qr/[a-zA-Z0-9:_]+/,

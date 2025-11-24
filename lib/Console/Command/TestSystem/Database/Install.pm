@@ -60,7 +60,7 @@ sub Configure {
         ValueRegex  => qr/.*/smx,
     );
     $Self->AddOption(
-        Name => 'delete',
+        Name        => 'delete',
         Description =>
             "Delete existing tables before creation (removes old data). Note: removes only to standard Znuny Free tables.",
         Required => 0,
