@@ -26,6 +26,26 @@ Link Znuny module files into framework root.
 
 =cut
 
+sub _SkipFile {
+    my ($File) = @_;
+
+    # Paths under the module: skip if the path ends with one of these suffixes.
+    my @SkipSuffixRegex = (
+        qr{README\.markdown\z},
+        qr{README\.md\z},
+        qr{CHANGELOG\.md\z},
+        qr{LICENSE\z},
+        qr{\.gitignore\z},
+        qr{\.gitlab-ci\.yml\z},
+    );
+
+    for my $Pattern (@SkipSuffixRegex) {
+        return 1 if $File =~ $Pattern;
+    }
+
+    return;
+}
+
 sub Configure {
     my ( $Self, %Param ) = @_;
 
@@ -210,9 +230,10 @@ sub _Link {
     for my $File (@List) {
         $File =~ s{\/\/}{\/}g;
 
-        next FILE if $File =~ m{^README.markdown$};
-        next FILE if $File =~ m{^README.md$};
-        next FILE if $File =~ m{^LICENSE$};
+        if ( _SkipFile($File) ) {
+            $Self->Print("  Skip: <yellow>$File</yellow>\n");
+            next FILE;
+        }
 
         # Recurse into subdirectories.
         if ( -d $File ) {
