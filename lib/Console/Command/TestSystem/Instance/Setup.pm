@@ -116,13 +116,15 @@ sub Run {
     # Remove possible slash at the end.
     $FrameworkDirectory =~ s{ / \z }{}xms;
 
-    # Get Znuny major version number.
+    # Get Znuny major/minor version numbers.
     my $ReleaseString = `cat $FrameworkDirectory/RELEASE`;
     my $MajorVersion  = '';
-    if ( $ReleaseString =~ m{ VERSION \s+ = \s+ (\d+) .* \z }xms ) {
+    my $MinorVersion  = '';
+    if ( $ReleaseString =~ m{ VERSION \s* = \s* (\d+) \. (\d+) }xms ) {
         $MajorVersion = $1;
+        $MinorVersion = $2;
 
-        $Self->Print("\n<yellow>Installing testsystem for Znuny version $MajorVersion.</yellow>\n\n");
+        $Self->Print("\n<yellow>Installing testsystem for Znuny version $MajorVersion.$MinorVersion.</yellow>\n\n");
     }
 
     my %Config = %{ $Self->{Config}->{TestSystem} || {} };
@@ -424,8 +426,15 @@ EOD
     $Self->Print("\n  <yellow>Creating Database...</yellow>\n");
     {
         if ( $DatabaseType eq 'Mysql' ) {
+            my $CharsetSQL = 'CHARSET utf8mb3 COLLATE utf8_general_ci';
+            if(
+                $MajorVersion > 7 ||
+                $MajorVersion == 7 && $MinorVersion >= 1
+            ) {
+                $CharsetSQL = 'CHARSET utf8mb4 COLLATE utf8mb4_unicode_ci';
+            }
             $DBH->do("DROP DATABASE IF EXISTS $DatabaseSystemName");
-            $DBH->do("CREATE DATABASE $DatabaseSystemName charset utf8mb4");
+            $DBH->do("CREATE DATABASE $DatabaseSystemName $CharsetSQL");
             $DBH->do("use $DatabaseSystemName");
         }
         elsif ( $DatabaseType eq 'Postgresql' ) {
