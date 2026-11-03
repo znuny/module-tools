@@ -11,6 +11,7 @@ package Console::Command::TestSystem::Instance::Setup;
 
 use strict;
 use warnings;
+use utf8;
 
 use Cwd;
 use DBI;
@@ -81,12 +82,8 @@ sub PreRun {
     }
 
     for my $Directory (@Directories) {
-        if ( !-e $Directory ) {
-            die "$Directory does not exist";
-        }
-        if ( !-d $Directory ) {
-            die "$Directory is not a directory";
-        }
+        die "$Directory does not exist"     if !-e $Directory;
+        die "$Directory is not a directory" if !-d $Directory;
     }
 
     if ( !-e ( $FrameworkDirectory . '/RELEASE' ) ) {
@@ -427,10 +424,11 @@ EOD
     {
         if ( $DatabaseType eq 'Mysql' ) {
             my $CharsetSQL = 'CHARSET utf8mb3 COLLATE utf8_general_ci';
-            if(
+            if (
                 $MajorVersion > 7 ||
                 $MajorVersion == 7 && $MinorVersion >= 1
-            ) {
+                )
+            {
                 $CharsetSQL = 'CHARSET utf8mb4 COLLATE utf8mb4_unicode_ci';
             }
             $DBH->do("DROP DATABASE IF EXISTS $DatabaseSystemName");

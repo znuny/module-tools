@@ -11,6 +11,7 @@ package Console::Command::Module::File::Link;
 
 use strict;
 use warnings;
+use utf8;
 
 use File::Spec();
 
@@ -153,11 +154,10 @@ sub Run {
             FrameworkDirectory => $FrameworkDirectory,
         );
 
-        if ( !$Success ) {
-            $Self->PrintError("Can't link module.");
-            $GlobalFail = 1;
-            next MODULEDIRECTORY;
-        }
+        next MODULEDIRECTORY if $Success;
+
+        $Self->PrintError("Can't link module.");
+        $GlobalFail = 1;
     }
 
     if ($GlobalFail) {

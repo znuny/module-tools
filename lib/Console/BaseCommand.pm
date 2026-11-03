@@ -12,6 +12,7 @@ package Console::BaseCommand;
 
 use strict;
 use warnings;
+use utf8;
 
 use Term::ANSIColor();
 use IO::Interactive();
@@ -167,18 +168,20 @@ usage help and also to automatically verify the data provided by the user on the
 sub AddArgument {
     my ( $Self, %Param ) = @_;
 
+    KEY:
     for my $Key (qw(Name Description ValueRegex)) {
-        if ( !$Param{$Key} ) {
-            $Self->PrintError("Need $Key.");
-            die;
-        }
+        next KEY if $Param{$Key};
+
+        $Self->PrintError("Need $Key.");
+        die;
     }
 
+    KEY:
     for my $Key (qw(Required)) {
-        if ( !defined $Param{$Key} ) {
-            $Self->PrintError("Need $Key.");
-            die;
-        }
+        next KEY if defined $Param{$Key};
+
+        $Self->PrintError("Need $Key.");
+        die;
     }
 
     if ( $Self->{_ArgumentSeen}->{ $Param{Name} }++ ) {
@@ -247,18 +250,20 @@ Example: C<--target-path /tmp/test.out --source-filename test.txt --source-direc
 sub AddOption {
     my ( $Self, %Param ) = @_;
 
+    KEY:
     for my $Key (qw(Name Description)) {
-        if ( !$Param{$Key} ) {
-            $Self->PrintError("Need $Key.");
-            die;
-        }
+        next KEY if $Param{$Key};
+
+        $Self->PrintError("Need $Key.");
+        die;
     }
 
+    KEY:
     for my $Key (qw(Required HasValue)) {
-        if ( !defined $Param{$Key} ) {
-            $Self->PrintError("Need $Key.");
-            die;
-        }
+        next KEY if defined $Param{$Key};
+
+        $Self->PrintError("Need $Key.");
+        die;
     }
 
     if ( $Param{HasValue} ) {
@@ -296,10 +301,10 @@ fetch an option as provided by the user on the command line.
 
     my $Iterations = $CommandObject->GetOption('iterations');
 
-If the option was specified with HasValue => 1, the user provided value will be
+If the option was specified with HasValue =&gt; 1, the user provided value will be
 returned. Otherwise 1 will be returned if the option was present.
 
-In case of an option with C<Multiple => 1>, an array reference will be returned
+In case of an option with C<< Multiple =&gt; 1 >>, an array reference will be returned
 if the option was specified, and undef otherwise.
 
 =cut
@@ -585,7 +590,7 @@ sub PrintError {
 
 this method will print the given text to STDOUT.
 
-You can add color tags (C<< <green>...</green>, <yellow>...</yellow>, <red>...</red> >>)
+You can add color tags (C<< &lt;green&gt;...&lt;/green&gt;, &lt;yellow&gt;...&lt;/yellow&gt;, &lt;red&gt;...&lt;/red&gt; >>)
 to your text, and they will be replaced with the corresponding terminal escape sequences
 if the terminal supports it (see L</ANSI()>).
 
@@ -643,10 +648,10 @@ sub DirectoryRead {
         for my $GlobName (@Glob) {
 
             next NAME if !-e $GlobName;
-            if ( !$Seen{$GlobName} ) {
-                push @GlobResults, $GlobName;
-                $Seen{$GlobName} = 1;
-            }
+            next NAME if $Seen{$GlobName};
+
+            push @GlobResults, $GlobName;
+            $Seen{$GlobName} = 1;
         }
     }
 

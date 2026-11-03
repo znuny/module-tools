@@ -1,5 +1,5 @@
 # --
-# Copyright (C) 2001-2021 OTRS AG, https://znuny.com/
+# Copyright (C) 2001-2021 OTRS AG, https://otrs.com/
 # Copyright (C) 2012 Znuny GmbH, https://znuny.com/
 # --
 # This software comes with ABSOLUTELY NO WARRANTY. For details, see
@@ -11,6 +11,7 @@ package Console::Command::Misc::Translations::Sync;
 
 use strict;
 use warnings;
+use utf8;
 
 use Cwd qw(cwd);
 use File::Spec();
@@ -230,9 +231,10 @@ sub Run {
     TASK:
     for my $Task (@Tasks) {
         my $Success = $Self->System( %{$Task} );
-        if ( !$Success ) {
-            return $Self->ExitCodeError();
-        }
+
+        next TASK if $Success;
+
+        return $Self->ExitCodeError();
     }
 
     if ($IsFrameworkTranslation) {
@@ -280,9 +282,10 @@ sub Run {
         TASK:
         for my $Task (@Tasks) {
             $Success = $Self->System( %{$Task} );
-            if ( !$Success ) {
-                return $Self->ExitCodeError();
-            }
+
+            next TASK if $Success;
+
+            return $Self->ExitCodeError();
         }
 
         $Success = $Self->RunModule(
@@ -316,9 +319,10 @@ sub Run {
     TASK:
     for my $Task (@Tasks) {
         my $Success = $Self->System( %{$Task} );
-        if ( !$Success ) {
-            return $Self->ExitCodeError();
-        }
+
+        next TASK if $Success;
+
+        return $Self->ExitCodeError();
     }
 
     $Self->Print("\nPlease review the .pm files\n");
@@ -361,9 +365,10 @@ sub Run {
     TASK:
     for my $Task (@Tasks) {
         my $Success = $Self->System( %{$Task} );
-        if ( !$Success ) {
-            return $Self->ExitCodeError();
-        }
+
+        next TASK if $Success;
+
+        return $Self->ExitCodeError();
     }
 
     $Self->Print("\n<green>Done.</green>\n");
@@ -398,9 +403,10 @@ sub UpdatePOFiles {
     TASK:
     for my $Task (@Tasks) {
         my $Success = $Self->System( %{$Task} );
-        if ( !$Success ) {
-            return;
-        }
+
+        next TASK if $Success;
+
+        return;
     }
 
     $Self->Print("\nPlease review the .po files\n");
@@ -444,9 +450,10 @@ sub UpdatePOFiles {
     TASK:
     for my $Task (@Tasks) {
         my $Success = $Self->System( %{$Task} );
-        if ( !$Success ) {
-            return;
-        }
+
+        next TASK if $Success;
+
+        return;
     }
 
     return 1;

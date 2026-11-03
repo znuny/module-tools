@@ -11,6 +11,7 @@ package Console::Command::Module::UnreleasedCommits::Check;
 
 use strict;
 use warnings;
+use utf8;
 
 use File::Spec ();
 use Encode;
@@ -105,15 +106,13 @@ sub Run {
 
             my $ParentDirectoryValue = File::Spec->rel2abs($ParentDirectoryValue);
 
-            if ( !-d $ParentDirectoryValue ) {
-                $Self->PrintError("Package directory '$ParentDirectoryValue' is not a directory path!\n");
-                next PARENTDIRECTORYVALUE;
-            }
+            $Self->PrintError("Package directory '$ParentDirectoryValue' is not a directory path!\n")
+                if !-d $ParentDirectoryValue;
+            next PARENTDIRECTORYVALUE if !-d $ParentDirectoryValue;
 
-            if ( !-r $ParentDirectoryValue ) {
-                $Self->PrintError("Package directory '$ParentDirectoryValue' is not readable!\n");
-                next PARENTDIRECTORYVALUE;
-            }
+            $Self->PrintError("Package directory '$ParentDirectoryValue' is not readable!\n")
+                if !-r $ParentDirectoryValue;
+            next PARENTDIRECTORYVALUE if !-r $ParentDirectoryValue;
 
             # get all (package-)directories
             my @FilesInDirectory = $Self->DirectoryRead(
@@ -178,10 +177,9 @@ sub Run {
             next MODULEDIRECTORY;
         }
 
-        if ( $Self->GetOption('show-ok') ) {
+        next MODULEDIRECTORY if !$Self->GetOption('show-ok');
 
-            $Self->Print("$Output <green>OK</green>\n");
-        }
+        $Self->Print("$Output <green>OK</green>\n");
     }
 
     $Self->Print("\n<green>Done.</green>\n");

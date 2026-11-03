@@ -11,6 +11,7 @@ package Console::Command::Misc::File::CheckChanged;
 
 use strict;
 use warnings;
+use utf8;
 
 use File::Find;
 use Digest::MD5 qw(md5_hex);
@@ -76,12 +77,8 @@ sub PreRun {
     push @Directories, File::Spec->rel2abs( $Self->GetArgument('target-directory') || '.' );
 
     for my $Directory (@Directories) {
-        if ( !-e $Directory ) {
-            die "$Directory does not exist";
-        }
-        if ( !-d $Directory ) {
-            die "$Directory is not a directory";
-        }
+        die "$Directory does not exist"     if !-e $Directory;
+        die "$Directory is not a directory" if !-d $Directory;
     }
 
     return;

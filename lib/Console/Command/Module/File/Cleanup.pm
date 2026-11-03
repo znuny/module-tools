@@ -11,6 +11,7 @@ package Console::Command::Module::File::Cleanup;
 
 use strict;
 use warnings;
+use utf8;
 
 use File::Spec();
 
@@ -56,12 +57,8 @@ sub PreRun {
     }
 
     for my $Directory (@Directories) {
-        if ( !-e $Directory ) {
-            die "$Directory does not exist";
-        }
-        if ( !-d $Directory ) {
-            die "$Directory is not a directory";
-        }
+        die "$Directory does not exist"     if !-e $Directory;
+        die "$Directory is not a directory" if !-d $Directory;
     }
 
     return;
@@ -105,11 +102,10 @@ sub Run {
             SourceDirectory => $ModuleDirectory,
         );
 
-        if ( !$Success ) {
-            $Self->PrintError("Can't cleanup module.");
-            $GlobalFail = 1;
-            next MODULEDIRECTORY;
-        }
+        next MODULEDIRECTORY if $Success;
+
+        $Self->PrintError("Can't cleanup module.");
+        $GlobalFail = 1;
     }
 
     if ($GlobalFail) {

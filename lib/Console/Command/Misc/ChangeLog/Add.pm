@@ -11,6 +11,7 @@ package Console::Command::Misc::ChangeLog::Add;
 
 use strict;
 use warnings;
+use utf8;
 
 use Cwd;
 use DateTime;
@@ -116,10 +117,10 @@ sub Run {
 
         FILE:
         for my $File (qw ( CHANGES.md CHANGES )) {
-            if ( -e $File ) {
-                $ChangesFile = $File;
-                last FILE;
-            }
+            next FILE if !-e $File;
+
+            $ChangesFile = $File;
+            last FILE;
         }
 
         # If no changes file was found maybe is a package path.

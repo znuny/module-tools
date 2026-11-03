@@ -11,6 +11,7 @@ package Console::Command::Misc::ChangeLog::Dump;
 
 use strict;
 use warnings;
+use utf8;
 
 use Path::Tiny qw(path);
 

@@ -11,6 +11,7 @@ package Console::BaseDirectory;
 
 use strict;
 use warnings;
+use utf8;
 
 =head1 NAME
 

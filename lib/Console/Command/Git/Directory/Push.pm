@@ -11,6 +11,7 @@ package Console::Command::Git::Directory::Push;
 
 use strict;
 use warnings;
+use utf8;
 
 use parent qw(Console::BaseCommand Console::BaseDirectory);
 

@@ -11,6 +11,7 @@ package System;
 
 use strict;
 use warnings;
+use utf8;
 
 use File::Basename qw(dirname);
 use File::Spec();

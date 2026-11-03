@@ -11,6 +11,7 @@ package Console::Command::Git::File::Find;
 
 use strict;
 use warnings;
+use utf8;
 
 use String::Similarity;
 use File::Spec();
@@ -57,10 +58,11 @@ sub PreRun {
         File::Spec->rel2abs( $Self->GetOption('target-path') ),
     );
 
+    DIRECTORY:
     for my $Directory (@Directories) {
-        if ( !-e $Directory ) {
-            die "$Directory does not exist";
-        }
+        next DIRECTORY if -e $Directory;
+
+        die "$Directory does not exist";
     }
 
     return;
@@ -82,11 +84,12 @@ sub Run {
     COUNTER:
     for my $Counter ( 1 .. scalar @Directories ) {
         my $Directory = "/" . File::Spec->catfile( @Directories[ 0 .. $Counter - 1 ] );
-        if ( -d "$Directory/.git" ) {
-            $RepositoryDirectory = $Directory;
-            $RelativeFilename    = File::Spec->catfile( @Directories[ $Counter .. $#Directories ] );
-            last COUNTER;
-        }
+
+        next COUNTER if !-d "$Directory/.git";
+
+        $RepositoryDirectory = $Directory;
+        $RelativeFilename    = File::Spec->catfile( @Directories[ $Counter .. $#Directories ] );
+        last COUNTER;
     }
 
     if ( !$RepositoryDirectory ) {

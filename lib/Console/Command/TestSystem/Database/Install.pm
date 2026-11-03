@@ -14,6 +14,7 @@ package Console::Command::TestSystem::Database::Install;
 
 use strict;
 use warnings;
+use utf8;
 
 use File::Basename;
 use FindBin qw($RealBin);
@@ -212,10 +213,12 @@ sub Run {
             @SQLPost = $CommonObject{DBObject}->SQLProcessorPost();
         }
 
+        SQL:
         for my $SQL (@SQL) {
             $CommonObject{DBObject}->Do( SQL => $SQL );
         }
 
+        # Statements for this schema file are applied.
     }
 
     # Execute post SQL statements (indexes, constraints).

@@ -14,6 +14,7 @@ package Console::Command::TestSystem::Database::Fill;
 
 use strict;
 use warnings;
+use utf8;
 
 use File::Basename;
 use FindBin qw($RealBin);
@@ -175,50 +176,55 @@ sub Run {
             ChangeUserID => 1,
         );
 
-        if ($UserID) {
-            for my $GroupID (qw(1 2 3)) {
-                if ( $CommonObject{GroupObject}->can('GroupMemberAdd') ) {
-                    my $Success = $CommonObject{GroupObject}->GroupMemberAdd(
-                        GID        => $GroupID,
-                        UID        => $UserID,
-                        Permission => {
-                            rw => 1,
-                        },
-                        UserID => 1,
-                    );
-                }
-                if ( $CommonObject{GroupObject}->can('PermissionGroupUserAdd') ) {
-                    my $Success = $CommonObject{GroupObject}->PermissionGroupUserAdd(
-                        GID        => $GroupID,
-                        UID        => $UserID,
-                        Permission => {
-                            ro        => 1,
-                            move_into => 1,
-                            create    => 1,
-                            owner     => 1,
-                            priority  => 1,
-                            rw        => 1,
-                        },
-                        UserID => 1,
-                    );
-                }
+        next AGENT if !$UserID;
+
+        GROUPID:
+        for my $GroupID (qw(1 2 3)) {
+            if ( $CommonObject{GroupObject}->can('GroupMemberAdd') ) {
+                my $Success = $CommonObject{GroupObject}->GroupMemberAdd(
+                    GID        => $GroupID,
+                    UID        => $UserID,
+                    Permission => {
+                        rw => 1,
+                    },
+                    UserID => 1,
+                );
             }
 
-            # Agent preferences.
-            if ( $UserPreferences && $CommonObject{UserObject}->can('SetPreferences') ) {
+            next GROUPID if !$CommonObject{GroupObject}->can('PermissionGroupUserAdd');
 
-                for my $Preference ( @{$UserPreferences} ) {
-
-                    $CommonObject{UserObject}->SetPreferences(
-                        Key    => $Preference->{Key},
-                        Value  => $Preference->{Value},
-                        UserID => $UserID,
-                    );
-                }
-            }
-
-            $Self->Print("  Agent <yellow>$UserID</yellow> has been created.\n");
+            my $Success = $CommonObject{GroupObject}->PermissionGroupUserAdd(
+                GID        => $GroupID,
+                UID        => $UserID,
+                Permission => {
+                    ro        => 1,
+                    move_into => 1,
+                    create    => 1,
+                    owner     => 1,
+                    priority  => 1,
+                    rw        => 1,
+                },
+                UserID => 1,
+            );
         }
+
+        # Agent preferences.
+        if ( $UserPreferences && $CommonObject{UserObject}->can('SetPreferences') ) {
+
+            PREFERENCE:
+            for my $Preference ( @{$UserPreferences} ) {
+
+                $CommonObject{UserObject}->SetPreferences(
+                    Key    => $Preference->{Key},
+                    Value  => $Preference->{Value},
+                    UserID => $UserID,
+                );
+            }
+
+            # Preferences for this agent are stored.
+        }
+
+        $Self->Print("  Agent <yellow>$UserID</yellow> has been created.\n");
     }
 
     # Add Customer Companies.
@@ -244,9 +250,9 @@ sub Run {
             UserID  => 1,
         );
 
-        if ($ID) {
-            $Self->Print("  Customer company $ID has been created.\n");
-        }
+        next CUSTOMERCOMPANY if !$ID;
+
+        $Self->Print("  Customer company $ID has been created.\n");
     }
 
     # Add Customers.
@@ -272,9 +278,9 @@ sub Run {
             UserID  => 1,
         );
 
-        if ($UserID) {
-            $Self->Print("  Customer $UserID has been created.\n");
-        }
+        next CUSTOMER if !$UserID;
+
+        $Self->Print("  Customer $UserID has been created.\n");
     }
 
     # Deploy system configuration (< OTRS6).

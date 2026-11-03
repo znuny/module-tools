@@ -11,6 +11,7 @@ package Console::Command::List;
 
 use strict;
 use warnings;
+use utf8;
 
 use System;
 

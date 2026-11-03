@@ -11,6 +11,7 @@ package Console::Command::Module::Package::Uninstall;
 
 use strict;
 use warnings;
+use utf8;
 
 use File::Spec ();
 use File::Basename;
@@ -141,12 +142,8 @@ sub PreRun {
     }
 
     for my $Directory (@Directories) {
-        if ( !-e $Directory ) {
-            die "$Directory does not exist";
-        }
-        if ( !-d $Directory ) {
-            die "$Directory is not a directory";
-        }
+        die "$Directory does not exist"     if !-e $Directory;
+        die "$Directory is not a directory" if !-d $Directory;
     }
 
     if ( !-e ( $FrameworkDirectory . '/RELEASE' ) ) {
@@ -297,11 +294,10 @@ sub Run {
             last EXITCODE;
         }
 
-        if ($Fail) {
-            $Self->PrintError("Could not uninstall $ModuleName module correctly!");
-            $GlobalFail = 1;
-            next MODULEDIRECTORY;
-        }
+        next MODULEDIRECTORY if !$Fail;
+
+        $Self->PrintError("Could not uninstall $ModuleName module correctly!");
+        $GlobalFail = 1;
     }
 
     if ($GlobalFail) {

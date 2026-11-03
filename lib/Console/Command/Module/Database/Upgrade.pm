@@ -11,6 +11,7 @@ package Console::Command::Module::Database::Upgrade;
 
 use strict;
 use warnings;
+use utf8;
 
 use File::Spec();
 
@@ -18,7 +19,7 @@ use parent qw(Console::BaseCommand Console::BaseModule);
 
 =head1 NAME
 
-Console::Command::Module::Database::Upgrade - Console command to execute the <DatabaseUpgrade> section of a module.
+Console::Command::Module::Database::Upgrade - Console command to execute the &lt;DatabaseUpgrade&gt; section of a module.
 
 =head1 DESCRIPTION
 

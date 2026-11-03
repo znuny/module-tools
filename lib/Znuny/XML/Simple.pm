@@ -11,6 +11,7 @@ package Znuny::XML::Simple;
 
 use strict;
 use warnings;
+use utf8;
 
 eval { require XML::Simple };
 if ($@) {
